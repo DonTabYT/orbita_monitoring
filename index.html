@@ -26,7 +26,15 @@
 
         .dashboard { width: 100%; max-width: 500px; }
         header { margin-bottom: 40px; text-align: center; }
-        h1 { font-family: 'Unbounded', cursive; font-size: 26px; background: linear-gradient(180deg, #fff 0%, #bc13fe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        /* НЕОНОВЫЙ ТИТУЛЬНИК */
+        h1 { 
+            font-family: 'Unbounded', cursive; font-size: 28px; 
+            background: linear-gradient(180deg, #fff 0%, #bc13fe 100%); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+            filter: drop-shadow(0 0 15px rgba(188, 19, 254, 0.8));
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
         
         .status-bar { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 10px; color: rgba(188, 19, 254, 0.5); margin-top: 10px; }
         .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 15px var(--accent); animation: pulse 2s infinite; }
@@ -44,10 +52,15 @@
         .row:last-child { border-bottom: none; }
         .name { color: rgba(255, 255, 255, 0.5); }
         .val { font-variant-numeric: tabular-nums; font-weight: 600; }
-        .val.ok { color: var(--green); }
-        .val.bad { color: var(--red); }
 
-        .chart-wrapper { height: 200px; position: relative; margin-top: 10px; }
+        /* НЕОНОВЫЙ ПИНГ */
+        .val.ok { 
+            color: var(--green); 
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.6); 
+        }
+        .val.bad { color: var(--red); text-shadow: 0 0 10px rgba(255, 0, 60, 0.6); }
+
+        .chart-wrapper { height: 220px; position: relative; margin-top: 10px; }
         .time-labels { display: flex; justify-content: space-between; margin-top: 12px; font-size: 9px; color: #444; font-weight: 800; text-transform: uppercase; }
 
         .footer { text-align: center; margin-top: 40px; font-size: 10px; color: rgba(255,255,255,0.1); }
@@ -94,12 +107,12 @@
         const ctx = document.getElementById('mainChart').getContext('2d');
         
         // Жидкие градиенты
-        const gradV = ctx.createLinearGradient(0, 0, 0, 200);
-        gradV.addColorStop(0, 'rgba(188, 19, 254, 0.25)');
+        const gradV = ctx.createLinearGradient(0, 0, 0, 220);
+        gradV.addColorStop(0, 'rgba(188, 19, 254, 0.4)');
         gradV.addColorStop(1, 'rgba(188, 19, 254, 0)');
 
-        const gradRS = ctx.createLinearGradient(0, 0, 0, 200);
-        gradRS.addColorStop(0, 'rgba(0, 242, 255, 0.2)');
+        const gradRS = ctx.createLinearGradient(0, 0, 0, 220);
+        gradRS.addColorStop(0, 'rgba(0, 242, 255, 0.3)');
         gradRS.addColorStop(1, 'rgba(0, 242, 255, 0)');
 
         const mainChart = new Chart(ctx, {
@@ -109,18 +122,19 @@
                 datasets: [
                     { 
                         label: 'Valve', data: [], borderColor: '#bc13fe', borderWidth: 3, 
-                        fill: true, backgroundColor: gradV, pointRadius: 0, tension: 0.4,
+                        fill: true, backgroundColor: gradV, pointRadius: 2, pointHoverRadius: 6, tension: 0.4,
                         segment: { borderColor: ctx => ctx.p1.parsed.y === 0 ? '#ff003c' : undefined }
                     },
                     { 
                         label: 'Rockstar', data: [], borderColor: '#00f2ff', borderWidth: 3, 
-                        fill: true, backgroundColor: gradRS, pointRadius: 0, tension: 0.4,
+                        fill: true, backgroundColor: gradRS, pointRadius: 2, pointHoverRadius: 6, tension: 0.4,
                         segment: { borderColor: ctx => ctx.p1.parsed.y === 0 ? '#ff003c' : undefined }
                     }
                 ]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
                 plugins: { 
                     legend: { 
                         display: true, 
@@ -128,6 +142,21 @@
                             color: '#555', usePointStyle: true, pointStyle: 'line', 
                             boxWidth: 20, font: { size: 10, weight: 'bold' } 
                         } 
+                    },
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: 'rgba(15, 15, 20, 0.9)',
+                        titleColor: '#888',
+                        bodyColor: '#fff',
+                        bodyFont: { family: 'Inter', weight: 'bold' },
+                        borderColor: 'rgba(255,255,255,0.1)',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: true,
+                        callbacks: {
+                            title: (c) => 'Время: ' + c[0].label,
+                            label: (c) => ` ${c.dataset.label}: ${c.raw === 0 ? 'СДОХ' : c.raw + 'мс'}`
+                        }
                     }
                 },
                 scales: {
@@ -147,15 +176,14 @@
                 const data = await res.json();
                 if (!data) return;
 
-                const isOff = (Date.now() / 1000 - (data.timestamp || 0)) > 60;
-                document.getElementById('status_dot').style.background = isOff ? '#ff003c' : '#bc13fe';
                 document.getElementById('time').innerText = data.last_update;
 
                 if (data.v_h && data.rs_h && data.t_h) {
                     mainChart.data.labels = data.t_h;
                     mainChart.data.datasets[0].data = data.v_h;
                     mainChart.data.datasets[1].data = data.rs_h;
-                    mainChart.update('none');
+                    mainChart.update('none'); // Мгновенное обновление без анимации
+                    
                     document.getElementById('start_t').innerText = data.t_h[0];
                     document.getElementById('end_t').innerText = data.t_h.at(-1);
                 }
@@ -172,7 +200,11 @@
                 render(data.valve, 'valve_list'); render(data.gta, 'gta_list');
             } catch (e) {}
         }
-        setInterval(update, 10000); update();
+
+        // Запуск сразу при открытии страницы!
+        update();
+        // А потом каждые 10 секунд
+        setInterval(update, 10000);
     </script>
 </body>
 </html>
