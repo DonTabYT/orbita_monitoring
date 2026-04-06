@@ -4,16 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ОРБИТА ХУЙНЯ</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --accent: #00f2ff;
+            --accent: #bc13fe;
             --green: #00ff88;
-            --red: #ff3e3e;
+            --red: #ff003c;
+            --bg: #050508;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
         }
 
         body {
-            background: #050508;
+            background: var(--bg);
+            background-image: radial-gradient(circle at center, #1a0b2e 0%, #050508 80%);
             color: #fff;
             font-family: 'Inter', sans-serif;
             -webkit-font-smoothing: antialiased;
@@ -25,67 +31,85 @@
             overflow-x: hidden;
         }
 
-        /* Декоративные пятна для эффекта стекла */
-        body::before {
-            content: '';
-            position: fixed;
-            top: -10%; left: -10%;
-            width: 40%; height: 40%;
-            background: radial-gradient(circle, rgba(0, 242, 255, 0.05) 0%, transparent 70%);
-            z-index: -1;
-        }
-        body::after {
-            content: '';
-            position: fixed;
-            bottom: -10%; right: -10%;
-            width: 50%; height: 50%;
-            background: radial-gradient(circle, rgba(0, 255, 136, 0.03) 0%, transparent 70%);
-            z-index: -1;
+        .dashboard {
+            width: 100%;
+            max-width: 480px;
         }
 
-        .dashboard { width: 100%; max-width: 480px; }
-
-        header { margin-bottom: 40px; }
+        header {
+            margin-bottom: 50px;
+            text-align: center;
+        }
 
         h1 {
-            font-size: 34px;
+            font-family: 'Unbounded', cursive;
+            font-size: 28px;
             font-weight: 900;
             margin: 0;
-            letter-spacing: -1.5px;
-            display: flex;
+            letter-spacing: -1px;
+            display: inline-flex;
             align-items: center;
             gap: 15px;
+            text-transform: uppercase;
+            background: linear-gradient(180deg, #fff 0%, #bc13fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 10px rgba(188, 19, 254, 0.3));
         }
 
         .status-bar {
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 10px;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 800;
-            color: rgba(255,255,255,0.2);
+            color: rgba(188, 19, 254, 0.5); /* Текст "ОБНОВЛЕНО" остается тусклым */
             margin-top: 15px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
         }
 
-        .dot { 
-            width: 8px; height: 8px; 
-            background: var(--green); 
-            border-radius: 50%; 
-            box-shadow: 0 0 15px var(--green); 
+        /* ВРЕМЯ ТЕПЕРЬ БЕЛОЕ */
+        #time {
+            color: #fff;
+            opacity: 1;
         }
 
-        /* ЭФФЕКТ СТЕКЛА */
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--accent);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
         .card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 28px;
+            background: var(--glass);
+            backdrop-filter: blur(25px) saturate(160%);
+            -webkit-backdrop-filter: blur(25px) saturate(160%);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
             padding: 30px;
             margin-bottom: 25px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 50%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+            pointer-events: none;
         }
 
         h2 {
@@ -95,78 +119,86 @@
             text-transform: uppercase;
             letter-spacing: 2px;
             margin-bottom: 20px;
+            opacity: 0.8;
         }
 
         .row {
             display: flex;
             justify-content: space-between;
             padding: 14px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-size: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 15px;
+            position: relative;
+            z-index: 2;
         }
 
         .row:last-child { border-bottom: none; }
 
-        .name { color: rgba(255,255,255,0.6); font-weight: 500; }
-        
-        /* ПИНГ ТЕПЕРЬ НЕ ЖИРНЫЙ */
-        .val { 
-            font-variant-numeric: tabular-nums; 
-            font-weight: 400; 
-        }
-        
-        .val.ok { color: var(--green); }
-        .val.bad { color: var(--red); opacity: 0.4; }
+        .name { color: rgba(255, 255, 255, 0.5); font-weight: 400; }
+
+        .val { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+        .val.ok { color: var(--green); text-shadow: 0 0 10px rgba(0, 255, 136, 0.2); }
+        .val.bad { color: var(--red); text-shadow: 0 0 10px rgba(255, 0, 60, 0.3); }
 
         .footer {
             text-align: center;
             margin-top: 60px;
-            font-size: 11px;
-            color: rgba(255,255,255,0.1);
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.1);
             font-weight: 600;
+            letter-spacing: 1px;
         }
 
-        .author { 
-            color: var(--accent); 
-            text-decoration: none; 
+        .author {
+            color: var(--accent);
+            text-decoration: none;
             transition: 0.3s;
             display: inline-block;
-            margin-top: 5px;
+            margin-top: 8px;
+            font-size: 12px;
         }
-        .author:hover { opacity: 0.8; transform: translateY(-1px); }
+
+        .author:hover { text-shadow: 0 0 10px var(--accent); transform: scale(1.05); }
     </style>
 </head>
 <body>
     <div class="dashboard">
         <header>
             <h1>🛰️ ОРБИТА ХУЙНЯ</h1>
-            <div class="status-bar"><div class="dot"></div> ОБНОВЛЕНО <span id="time">...</span></div>
+            <div class="status-bar">
+                <div class="dot"></div>
+                ОБНОВЛЕНО <span id="time">...</span>
+            </div>
         </header>
 
-        <div class="card">
-            <h2>TOP 5 VALVE RELAYS</h2>
-            <div id="valve_list"></div>
-        </div>
+        <main>
+            <div class="card">
+                <h2>ТОП 5 СЕРВЕРОВ VALVE ПО ПИНГУ</h2>
+                <div id="valve_list"></div>
+            </div>
 
-        <div class="card">
-            <h2>ROCKSTAR NETWORK</h2>
-            <div id="gta_list"></div>
-        </div>
+            <div class="card">
+                <h2>СЕРВЕРА ROCKSTAR</h2>
+                <div id="gta_list"></div>
+            </div>
+        </main>
 
-        <div class="footer">
-            DATABASE: FIREBASE | HOST: GITHUB<br>
-            by <a href="https://t.me/maybedontab" target="_blank" class="author">@maybedontab</a>
-        </div>
+        <footer class="footer">
+            БАЗА ДАННЫХ: FIREBASE | ХОСТИНГ: GITHUB<br>
+            <a href="https://t.me/maybedontab" target="_blank" class="author">by @maybedontab</a>
+        </footer>
     </div>
 
     <script>
         const DB_URL = "https://orbita-monitor-default-rtdb.firebaseio.com/data.json";
 
-        async function update() {
+        async function updateData() {
             try {
-                const res = await fetch(DB_URL);
-                const data = await res.json();
+                const response = await fetch(DB_URL);
+                const data = await response.json();
                 if (!data) return;
+
                 document.getElementById('time').innerText = data.last_update;
 
                 const render = (list, targetId) => {
@@ -174,22 +206,25 @@
                     if (!list) return;
                     list.forEach(s => {
                         const isOk = s.ping !== 'n/a';
+                        const pingValue = isOk ? s.ping + 'мс' : 'СДОХ';
                         html += `
                         <div class="row">
                             <span class="name">${s.name}</span>
-                            <span class="val ${isOk ? 'ok' : 'bad'}">${s.ping}${isOk ? 'ms' : ''}</span>
+                            <span class="val ${isOk ? 'ok' : 'bad'}">${pingValue}</span>
                         </div>`;
                     });
                     document.getElementById(targetId).innerHTML = html;
                 };
 
-                // Рендерим только нужное
                 render(data.valve, 'valve_list');
                 render(data.gta, 'gta_list');
-            } catch (e) {}
+            } catch (e) {
+                console.error("Ошибка загрузки:", e);
+            }
         }
-        setInterval(update, 10000);
-        update();
+
+        setInterval(updateData, 10000);
+        updateData();
     </script>
 </body>
 </html>
