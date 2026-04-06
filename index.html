@@ -7,42 +7,50 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #050507;
-            --card-bg: rgba(18, 18, 22, 0.7);
             --accent: #00f2ff;
             --green: #00ff88;
             --red: #ff3e3e;
         }
 
         body {
-            background: var(--bg);
-            background-image: radial-gradient(circle at 50% -20%, #1a1a2e 0%, #050507 60%);
+            background: #050508;
             color: #fff;
             font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
             display: flex;
             justify-content: center;
             min-height: 100vh;
             margin: 0;
             padding: 40px 20px;
+            overflow-x: hidden;
         }
 
-        .dashboard {
-            width: 100%;
-            max-width: 460px;
+        /* Декоративные пятна для эффекта стекла */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -10%; left: -10%;
+            width: 40%; height: 40%;
+            background: radial-gradient(circle, rgba(0, 242, 255, 0.05) 0%, transparent 70%);
+            z-index: -1;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -10%; right: -10%;
+            width: 50%; height: 50%;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.03) 0%, transparent 70%);
+            z-index: -1;
         }
 
-        header {
-            margin-bottom: 40px;
-            text-align: left;
-        }
+        .dashboard { width: 100%; max-width: 480px; }
+
+        header { margin-bottom: 40px; }
 
         h1 {
-            font-size: 32px;
+            font-size: 34px;
             font-weight: 900;
             margin: 0;
-            background: linear-gradient(to right, #fff, #555);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
             letter-spacing: -1.5px;
             display: flex;
             align-items: center;
@@ -53,68 +61,79 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 800;
-            letter-spacing: 1px;
-            color: #444;
-            margin-top: 10px;
+            color: rgba(255,255,255,0.2);
+            margin-top: 15px;
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .dot {
-            width: 6px;
-            height: 6px;
-            background: var(--green);
-            border-radius: 50%;
-            box-shadow: 0 0 12px var(--green);
+        .dot { 
+            width: 8px; height: 8px; 
+            background: var(--green); 
+            border-radius: 50%; 
+            box-shadow: 0 0 15px var(--green); 
         }
 
+        /* ЭФФЕКТ СТЕКЛА */
         .card {
-            background: var(--card-bg);
-            backdrop-filter: blur(10px); /* Стеклянный эффект */
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 28px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
 
         h2 {
             font-size: 11px;
-            font-weight: 800;
+            font-weight: 900;
             color: var(--accent);
             text-transform: uppercase;
             letter-spacing: 2px;
-            margin: 0 0 15px 0;
+            margin-bottom: 20px;
         }
 
         .row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 16px;
         }
 
         .row:last-child { border-bottom: none; }
 
-        .name { font-size: 14px; color: #aaa; font-weight: 500; }
-        .val { font-size: 14px; 
-               /* ТУТ ИСПРАВИЛ: ПИНГ ТЕПЕРЬ ОБЫЧНЫЙ */
-               font-weight: 400; 
-               font-variant-numeric: tabular-nums; }
+        .name { color: rgba(255,255,255,0.6); font-weight: 500; }
         
-        .val.ok { color: var(--green); font-weight: 600;} /* Статус можно выделить, сам пинг обычный */
-        .val.bad { color: var(--red); opacity: 0.5; }
+        /* ПИНГ ТЕПЕРЬ НЕ ЖИРНЫЙ */
+        .val { 
+            font-variant-numeric: tabular-nums; 
+            font-weight: 400; 
+        }
+        
+        .val.ok { color: var(--green); }
+        .val.bad { color: var(--red); opacity: 0.4; }
 
         .footer {
             text-align: center;
-            margin-top: 40px;
-            font-size: 10px;
-            color: #222;
+            margin-top: 60px;
+            font-size: 11px;
+            color: rgba(255,255,255,0.1);
+            font-weight: 600;
         }
 
-        .author { color: #444; text-decoration: none; font-weight: 700; }
+        .author { 
+            color: var(--accent); 
+            text-decoration: none; 
+            transition: 0.3s;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        .author:hover { opacity: 0.8; transform: translateY(-1px); }
     </style>
 </head>
 <body>
@@ -125,23 +144,18 @@
         </header>
 
         <div class="card">
-            <h2>ROCKSTAR NETWORK</h2>
-            <div id="gta_list"></div>
-        </div>
-
-        <div class="card">
-            <h2>DISCORD VOICE</h2>
-            <div id="discord_list"></div>
-        </div>
-
-        <div class="card">
             <h2>TOP 5 VALVE RELAYS</h2>
             <div id="valve_list"></div>
         </div>
 
+        <div class="card">
+            <h2>ROCKSTAR NETWORK</h2>
+            <div id="gta_list"></div>
+        </div>
+
         <div class="footer">
-            DATABASE: FIREBASE | HOST: GITHUB<br><br>
-            by <span class="author">@maybedontab</span>
+            DATABASE: FIREBASE | HOST: GITHUB<br>
+            by <a href="https://t.me/maybedontab" target="_blank" class="author">@maybedontab</a>
         </div>
     </div>
 
@@ -157,6 +171,7 @@
 
                 const render = (list, targetId) => {
                     let html = '';
+                    if (!list) return;
                     list.forEach(s => {
                         const isOk = s.ping !== 'n/a';
                         html += `
@@ -168,9 +183,9 @@
                     document.getElementById(targetId).innerHTML = html;
                 };
 
-                render(data.discord, 'discord_list');
-                render(data.gta, 'gta_list');
+                // Рендерим только нужное
                 render(data.valve, 'valve_list');
+                render(data.gta, 'gta_list');
             } catch (e) {}
         }
         setInterval(update, 10000);
