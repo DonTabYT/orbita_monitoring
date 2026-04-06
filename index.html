@@ -17,7 +17,7 @@
         h1 { font-family: 'Unbounded', cursive; font-size: 28px; background: linear-gradient(180deg, #fff 0%, #bc13fe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 15px rgba(188, 19, 254, 0.8)); text-shadow: 0 0 5px rgba(255, 255, 255, 0.2); }
         .status-bar { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; font-size: 10px; color: rgba(188, 19, 254, 0.5); font-weight: 800; text-transform: uppercase; }
         #time { color: #fff; font-weight: 900; font-size: 11px; letter-spacing: 1px; }
-        .refresh-rate { color: #fff; font-size: 9px; font-weight: 900; text-shadow: 0 0 8px rgba(255,255,255,0.5); background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; }
+        .refresh-rate { color: #fff; font-size: 9px; font-weight: 900; text-shadow: 0 0 8px rgba(255,255,255,0.5); background: rgba(255,255,255,0.1); padding: 3px 7px; border-radius: 5px; }
         .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 15px var(--accent); animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         .card { background: var(--glass); backdrop-filter: blur(25px) saturate(160%); border: 1px solid var(--glass-border); border-radius: 32px; padding: 25px; margin-bottom: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
@@ -42,8 +42,8 @@
             <div class="status-bar"><div class="dot" id="status_dot"></div><span>ОБНОВЛЕНО</span> <span id="time">...</span><span class="refresh-rate">(5 СЕК)</span></div>
         </header>
         <main>
-            <div class="card"><h2>СЕРВЕРА VALVE</h2><div id="valve_list"></div></div>
-            <div class="card"><h2>СЕРВЕРА ROCKSTAR</h2><div id="gta_list"></div></div>
+            <div class="card"><h2>TOP 5 VALVE SERVERS</h2><div id="valve_list">Загрузка...</div></div>
+            <div class="card"><h2>СЕРВЕРА ROCKSTAR</h2><div id="gta_list">Загрузка...</div></div>
             <div class="card"><h2>МОНИТОРИНГ СТАБИЛЬНОСТИ (1 ЧАС)</h2>
                 <div class="chart-wrapper"><canvas id="mainChart"></canvas></div>
                 <div class="time-labels"><span id="start_t">...</span><span id="end_t">...</span></div>
@@ -63,23 +63,29 @@
             data: { labels: [], datasets: [
                 { label: 'Valve', data: [], borderColor: '#bc13fe', borderWidth: 2, fill: true, backgroundColor: 'rgba(188, 19, 254, 0.1)', tension: 0.4, hitRadius: 25, pointRadius: (c) => c.dataIndex === c.dataset.data.length - 1 ? 0 : 2.5, pointBackgroundColor: '#bc13fe', pointBorderColor: '#bc13fe' },
                 { label: 'Rockstar', data: [], borderColor: '#00f2ff', borderWidth: 2, fill: true, backgroundColor: 'rgba(0, 242, 255, 0.1)', tension: 0.4, hitRadius: 25, pointRadius: (c) => c.dataIndex === c.dataset.data.length - 1 ? 0 : 2.5, pointBackgroundColor: '#00f2ff', pointBorderColor: '#00f2ff' },
-                { label: 'СДОХ', data: [], borderColor: '#ff003c', borderWidth: 2, showLine: true, hitRadius: 40, pointRadius: (c) => (global_dead_names[c.dataIndex]?.length > 0) ? 2.5 : 0, pointBackgroundColor: '#ff003c', pointBorderColor: '#ff003c' }
+                { label: 'СДОХ', data: [], borderColor: '#ff003c', borderWidth: 2, showLine: true, hitRadius: 40, pointRadius: (c) => (global_dead_names[c.dataIndex] && global_dead_names[c.dataIndex].length > 0) ? 2.5 : 0, pointBackgroundColor: '#ff003c', pointBorderColor: '#ff003c' }
             ]},
-            options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'nearest', axis: 'xy', intersect: true },
-                plugins: { legend: { display: true, labels: { color: '#555', usePointStyle: true, pointStyle: 'line' } },
-                    tooltip: { enabled: true, usePointStyle: true, callbacks: {
-                        title: (c) => 'ВРЕМЯ: ' + c[0].label,
-                        label: (c) => c.datasetIndex === 2 ? 'СТАТУС: ОТВАЛ' : ` ${c.dataset.label}: ${c.raw === 0 ? 'СДОХ' : c.raw + 'мс'}`,
-                        afterBody: (c) => { if (c[0].datasetIndex === 2) { const dead = global_dead_names[c[0].dataIndex]; if (dead?.length) return ['', 'В ОТВАЛЕ:', ...dead.map(n => ' • ' + n)]; } return null; }
-                    },
-                    filter: (item) => {
-                        const active = item.chart.getActiveElements();
-                        if (active.length > 0) {
-                            const idx = active[0].datasetIndex;
-                            return idx === 2 ? item.datasetIndex === 2 : item.datasetIndex !== 2;
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'nearest', axis: 'xy', intersect: true },
+                plugins: {
+                    legend: { display: true, labels: { color: '#555', usePointStyle: true, pointStyle: 'line' } },
+                    tooltip: {
+                        enabled: true, usePointStyle: true,
+                        callbacks: {
+                            title: (c) => 'ВРЕМЯ: ' + c[0].label,
+                            label: (c) => c.datasetIndex === 2 ? 'СТАТУС: ОТВАЛ' : ` ${c.dataset.label}: ${c.raw === 0 ? 'СДОХ' : Math.round(c.raw) + 'мс'}`,
+                            afterBody: (c) => { if (c[0].datasetIndex === 2) { const dead = global_dead_names[c[0].dataIndex]; if (dead && dead.length > 0) return ['', 'В ОТВАЛЕ:', ...dead.map(n => ' • ' + n)]; } return null; }
+                        },
+                        filter: (item) => {
+                            const active = item.chart.getActiveElements();
+                            if (active.length > 0) {
+                                const idx = active[0].datasetIndex;
+                                return idx === 2 ? item.datasetIndex === 2 : item.datasetIndex !== 2;
+                            }
+                            return true;
                         }
-                        return true;
-                    }}
+                    }
                 },
                 scales: { x: { display: false }, y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'rgba(255,255,255,0.1)', font: { size: 9 } } } }
             }
@@ -107,14 +113,19 @@
                 render(data.valve, 'valve_list'); render(data.gta, 'gta_list');
 
                 // ПРИКЛЕИВАЕМ ЖИВУЮ ЛИНИЮ
-                let labels = [...data.t_h], v_data = [...data.v_h], rs_data = [...data.rs_h], dead_data = [...data.dead_points];
+                let labels = [...data.t_h];
+                let v_data = [...data.v_h];
+                let rs_data = [...data.rs_h];
+                let dead_data = [...data.dead_points];
                 global_dead_names = [...data.dead_names_h];
 
-                if (labels[labels.length - 1] !== data.last_update) {
+                // Если время обновления в базе новее, чем последняя точка в истории
+                if (labels.length > 0 && labels[labels.length - 1] !== data.last_update) {
                     labels.push(data.last_update);
                     v_data.push(data.live_v || 0);
                     rs_data.push(data.live_rs || 0);
                     dead_data.push(0);
+                    // Проверяем текущий отвал для живой точки
                     const currentDead = [].concat(data.valve, data.gta).filter(s => s.ping === 'СДОХ').map(s => s.name);
                     global_dead_names.push(currentDead);
                 }
@@ -125,10 +136,12 @@
                 mainChart.data.datasets[2].data = dead_data;
                 mainChart.update('none');
 
-                document.getElementById('start_t').innerText = labels[0];
-                document.getElementById('end_t').innerText = labels[labels.length - 1];
-            } catch (e) { console.error(e); }
+                document.getElementById('start_t').innerText = labels[0] || '...';
+                document.getElementById('end_t').innerText = labels[labels.length - 1] || '...';
+
+            } catch (e) { console.error("Ошибка обновления:", e); }
         }
+
         update(); setInterval(update, 5000);
     </script>
 </body>
