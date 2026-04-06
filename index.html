@@ -63,7 +63,13 @@
             data: { labels: [], datasets: [
                 { label: 'Valve', data: [], borderColor: '#bc13fe', borderWidth: 2, fill: true, backgroundColor: 'rgba(188, 19, 254, 0.1)', tension: 0.4, hitRadius: 25, pointRadius: (c) => c.dataIndex === c.dataset.data.length - 1 ? 0 : 2.5, pointBackgroundColor: '#bc13fe', pointBorderColor: '#bc13fe' },
                 { label: 'Rockstar', data: [], borderColor: '#00f2ff', borderWidth: 2, fill: true, backgroundColor: 'rgba(0, 242, 255, 0.1)', tension: 0.4, hitRadius: 25, pointRadius: (c) => c.dataIndex === c.dataset.data.length - 1 ? 0 : 2.5, pointBackgroundColor: '#00f2ff', pointBorderColor: '#00f2ff' },
-                { label: 'СДОХ', data: [], borderColor: '#ff003c', borderWidth: 2, showLine: true, hitRadius: 40, pointRadius: (c) => (global_dead_names[c.dataIndex] && global_dead_names[c.dataIndex].length > 0) ? 2.5 : 0, pointBackgroundColor: '#ff003c', pointBorderColor: '#ff003c' }
+                { 
+                    label: 'СДОХ', data: [], borderColor: '#ff003c', borderWidth: 2, 
+                    showLine: true, spanGaps: false, // ИСПРАВИЛ: линия исчезнет при пропусках
+                    hitRadius: 40, 
+                    pointRadius: (c) => (global_dead_names[c.dataIndex] && global_dead_names[c.dataIndex].length > 0) ? 2.5 : 0, 
+                    pointBackgroundColor: '#ff003c', pointBorderColor: '#ff003c' 
+                }
             ]},
             options: {
                 responsive: true, maintainAspectRatio: false,
@@ -75,7 +81,13 @@
                         callbacks: {
                             title: (c) => 'ВРЕМЯ: ' + c[0].label,
                             label: (c) => c.datasetIndex === 2 ? 'СТАТУС: ОТВАЛ' : ` ${c.dataset.label}: ${c.raw === 0 ? 'СДОХ' : Math.round(c.raw) + 'мс'}`,
-                            afterBody: (c) => { if (c[0].datasetIndex === 2) { const dead = global_dead_names[c[0].dataIndex]; if (dead && dead.length > 0) return ['', 'В ОТВАЛЕ:', ...dead.map(n => ' • ' + n)]; } return null; }
+                            afterBody: (c) => { 
+                                if (c[0].datasetIndex === 2) { 
+                                    const dead = global_dead_names[c[0].dataIndex]; 
+                                    if (dead && dead.length > 0) return ['', 'В ОТВАЛЕ:', ...dead.map(n => ' • ' + n)]; 
+                                } 
+                                return null; 
+                            }
                         },
                         filter: (item) => {
                             const active = item.chart.getActiveElements();
@@ -112,21 +124,20 @@
                 };
                 render(data.valve, 'valve_list'); render(data.gta, 'gta_list');
 
-                // ПРИКЛЕИВАЕМ ЖИВУЮ ЛИНИЮ
+                // СКЛЕЙКА ИСТОРИИ И ЖИВОЙ ЛИНИИ
                 let labels = [...data.t_h];
                 let v_data = [...data.v_h];
                 let rs_data = [...data.rs_h];
                 let dead_data = [...data.dead_points];
                 global_dead_names = [...data.dead_names_h];
 
-                // Если время обновления в базе новее, чем последняя точка в истории
                 if (labels.length > 0 && labels[labels.length - 1] !== data.last_update) {
                     labels.push(data.last_update);
                     v_data.push(data.live_v || 0);
                     rs_data.push(data.live_rs || 0);
-                    dead_data.push(0);
-                    // Проверяем текущий отвал для живой точки
-                    const currentDead = [].concat(data.valve, data.gta).filter(s => s.ping === 'СДОХ').map(s => s.name);
+                    
+                    const currentDead = [].concat(data.valve || [], data.gta || []).filter(s => s.ping === 'СДОХ').map(s => s.name);
+                    dead_data.push(currentDead.length > 0 ? 0 : null); // ТУТ ИСПРАВИЛ
                     global_dead_names.push(currentDead);
                 }
 
