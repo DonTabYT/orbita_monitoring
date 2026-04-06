@@ -4,21 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Орбита Мониторинг</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #050505;
-            --card-bg: #0f0f12;
-            --accent: #00e5ff;
+            --bg: #0d1117;
+            --card-bg: #161b22;
+            --accent-rockstar: #00e5ff;
+            --accent-valve: #ffd600;
+            --accent-discord: #5865f2; /* Сине-фиолетовый для Discord */
             --green: #00ff88;
             --red: #ff3e3e;
-            --text-dim: #888;
+            --text-dim: #8b949e;
         }
 
         body {
             background: var(--bg);
-            color: #fff;
-            font-family: 'Inter', sans-serif;
+            color: #c9d1d9;
+            /* ПРИМЕНЯЕМ ПИКСЕЛЬНЫЙ ШРИФТ ДЛЯ ВСЕЙ СТРАНИЦЫ */
+            font-family: 'Pixelify Sans', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -29,31 +32,32 @@
 
         .dashboard {
             width: 100%;
-            max-width: 480px;
+            max-width: 550px;
             background: var(--card-bg);
             padding: 40px;
-            border-radius: 24px;
-            border: 1px solid #1f1f24;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
-            position: relative;
-            overflow: hidden;
+            border-radius: 20px;
+            border: 1px solid #30363d;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        .dashboard::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(0,229,255,0.04) 0%, transparent 60%);
-            pointer-events: none;
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 5px;
+        }
+
+        .logo {
+            width: 30px;
+            height: 30px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23fff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14.93V19h-2v-2.07c-2.83-.48-5-2.94-5-5.93h2c0 2.21 1.79 4 4 4s4-1.79 4-4h2c0 2.99-2.17 5.45-5 5.93zM12 5c3.31 0 6 2.69 6 6h2c0-4.41-3.59-8-8-8s-8 3.59-8 8h2c0-3.31 2.69-6 6-6z"/></svg>');
+            background-size: cover;
         }
 
         h1 {
-            font-size: 26px;
-            font-weight: 800;
-            margin: 0 0 8px 0;
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
             letter-spacing: -1px;
             color: #fff;
         }
@@ -66,7 +70,7 @@
             margin-bottom: 30px;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
+            letter-spacing: 1px;
         }
 
         .dot {
@@ -75,14 +79,8 @@
             background: var(--green);
             border-radius: 50%;
             margin-right: 10px;
-            box-shadow: 0 0 12px var(--green);
-            animation: pulse 2.5s infinite;
-        }
-
-        #time {
-            margin-left: 6px;
-            color: #fff;
-            opacity: 0.8;
+            box-shadow: 0 0 10px var(--green);
+            animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
@@ -95,40 +93,46 @@
 
         h2 {
             font-size: 10px;
-            color: var(--accent);
             text-transform: uppercase;
-            letter-spacing: 2.5px;
+            letter-spacing: 2px;
             margin-bottom: 15px;
-            font-weight: 800;
+            font-weight: 700;
         }
+
+        #rockstar_sec h2 { color: var(--accent-rockstar); }
+        #valve_sec h2 { color: var(--accent-valve); }
+        #discord_sec h2 { color: var(--accent-discord); }
 
         .row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 14px 0;
-            border-bottom: 1px solid #1a1a1f;
+            padding: 12px 0;
+            border-bottom: 1px solid #21262d;
+            font-size: 14px;
         }
 
         .row:last-child { border-bottom: none; }
 
-        .name { font-size: 14px; font-weight: 400; color: #eee; }
-        .val { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+        .name { font-weight: 400; color: #f0f6fc; }
+        .details { display: flex; gap: 10px; align-items: center; font-variant-numeric: tabular-nums;}
+        .ping { font-weight: 700; }
+        .members { font-weight: 400; color: var(--text-dim); }
         
-        .val.ok { color: var(--green); }
-        .val.bad { color: var(--red); opacity: 0.6; }
+        .ping.ok { color: var(--green); }
+        .ping.bad { color: var(--red); opacity: 0.6; }
 
         .footer {
             margin-top: 50px;
             text-align: center;
             font-size: 10px;
-            color: #3a3a3f;
+            color: #484f58;
             letter-spacing: 1px;
             font-weight: 600;
         }
 
         .author {
-            color: var(--accent);
+            color: var(--accent-discord);
             text-decoration: none;
             opacity: 0.7;
             transition: 0.3s;
@@ -137,17 +141,33 @@
 </head>
 <body>
     <div class="dashboard">
-        <h1>🛰️ ОРБИТА ХУЙНЯ</h1>
+        <div class="header">
+            <div class="logo"></div>
+            <h1>ОРБИТА ХУЙНЯ</h1>
+        </div>
         <div class="status-header"><div class="dot"></div> ОБНОВЛЕНО <span id="time">загрузка...</span></div>
         
         <section id="discord_sec">
-            <h2>Сервисы Discord</h2>
-            <div id="discord_list"></div>
+            <h2>DISCORD VOICE CHANNELS</h2>
+            <div id="discord_list">
+                <div class="row">
+                    <span class="name">💬 General Voice</span>
+                    <div class="details"><span class="ping ok"> Онлайн</span> <span class="members">3 Участника</span></div>
+                </div>
+                <div class="row">
+                    <span class="name">💬 Team A chat</span>
+                    <div class="details"><span class="ping ok"> Онлайн</span> <span class="members">2 Участника</span></div>
+                </div>
+                <div class="row">
+                    <span class="name">💬 Guild Hall</span>
+                    <div class="details"><span class="ping ok"> Онлайн</span> <span class="members">1 Участник</span></div>
+                </div>
+            </div>
         </section>
 
-        <section id="gta_sec">
-            <h2>Сеть Rockstar (GTA 5)</h2>
-            <div id="gta_list"></div>
+        <section id="rockstar_sec">
+            <h2>ROCKSTAR NETWORK</h2>
+            <div id="rockstar_list"></div>
         </section>
 
         <section id="valve_sec">
@@ -175,22 +195,22 @@
                 const render = (list, targetId) => {
                     let html = '';
                     if (!list || list.length === 0) {
-                        html = '<div class="row"><span class="name" style="color:#444">Ожидание данных...</span></div>';
+                        html = '<div class="row"><span class="name" style="color:#484f58">Ожидание данных...</span></div>';
                     } else {
                         list.forEach(s => {
                             const isOk = s.ping !== 'n/a';
                             html += `
                             <div class="row">
                                 <span class="name">${s.name}</span>
-                                <span class="val ${isOk ? 'ok' : 'bad'}">${s.ping}${isOk ? 'мс' : ''}</span>
+                                <span class="ping ${isOk ? 'ok' : 'bad'}">${s.ping}${isOk ? 'мс' : ''}</span>
                             </div>`;
                         });
                     }
                     document.getElementById(targetId).innerHTML = html;
                 };
 
-                render(data.discord, 'discord_list');
-                render(data.gta, 'gta_list');
+                // Отрисовываем существующие секции
+                render(data.gta, 'rockstar_list');
                 render(data.valve, 'valve_list');
 
             } catch (e) { 
