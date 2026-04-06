@@ -17,7 +17,7 @@
         h1 { font-family: 'Unbounded', cursive; font-size: 28px; background: linear-gradient(180deg, #fff 0%, #bc13fe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 15px rgba(188, 19, 254, 0.8)); text-shadow: 0 0 5px rgba(255, 255, 255, 0.2); }
         .status-bar { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; font-size: 10px; color: rgba(188, 19, 254, 0.5); font-weight: 800; text-transform: uppercase; }
         #time { color: #fff; font-weight: 900; font-size: 11px; letter-spacing: 1px; }
-        .refresh-rate { color: #fff; font-size: 9px; font-weight: 900; text-shadow: 0 0 8px rgba(255,255,255,0.5); background: rgba(255,255,255,0.05); padding: 3px 7px; border-radius: 5px; }
+        .refresh-rate { color: #fff; font-size: 9px; font-weight: 900; text-shadow: 0 0 8px rgba(255,255,255,0.5); background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; }
         .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 15px var(--accent); animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         .card { background: var(--glass); backdrop-filter: blur(25px) saturate(160%); border: 1px solid var(--glass-border); border-radius: 32px; padding: 25px; margin-bottom: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
@@ -29,7 +29,8 @@
         .check-box:checked::after { content: '✔'; position: absolute; font-size: 10px; color: #fff; left: 1px; top: -1px; }
         .name { color: rgba(255, 255, 255, 0.5); flex-grow: 1; }
         .val { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 50px; text-align: right; }
-        .val.ok { color: var(--green); } .val.bad { color: var(--red); }
+        .val.ok { color: var(--green); text-shadow: 0 0 10px rgba(0, 255, 136, 0.6); }
+        .val.bad { color: var(--red); text-shadow: 0 0 10px rgba(255, 0, 60, 0.6); }
         .chart-wrapper { height: 260px; position: relative; margin-top: 10px; }
         .time-labels { display: flex; justify-content: space-between; margin-top: 12px; font-size: 9px; color: #444; font-weight: 800; text-transform: uppercase; }
     </style>
@@ -54,6 +55,7 @@
         const DB_URL = "https://orbita-monitor-default-rtdb.firebaseio.com/data.json";
         const ctx = document.getElementById('mainChart').getContext('2d');
         const getSaved = (n) => localStorage.getItem('mon_' + n) !== 'false';
+        
         let global_dead_names = [];
 
         const mainChart = new Chart(ctx, {
@@ -61,18 +63,9 @@
             data: {
                 labels: [],
                 datasets: [
-                    { label: 'Valve', data: [], borderColor: '#bc13fe', borderWidth: 2, fill: true, backgroundColor: 'rgba(188, 19, 254, 0.1)', tension: 0.4, hitRadius: 25, pointRadius: (ctx) => (ctx.dataIndex === ctx.dataset.data.length - 1 ? 0 : 2.5), pointBackgroundColor: '#bc13fe', pointBorderColor: '#bc13fe' },
-                    { label: 'Rockstar', data: [], borderColor: '#00f2ff', borderWidth: 2, fill: true, backgroundColor: 'rgba(0, 242, 255, 0.1)', tension: 0.4, hitRadius: 25, pointRadius: (ctx) => (ctx.dataIndex === ctx.dataset.data.length - 1 ? 0 : 2.5), pointBackgroundColor: '#00f2ff', pointBorderColor: '#00f2ff' },
-                    { 
-                        label: 'СДОХ', data: [], borderColor: '#ff003c', borderWidth: 2, 
-                        showLine: true, // ВКЛЮЧИЛ ЛИНЮ
-                        hitRadius: 40, 
-                        pointRadius: (ctx) => {
-                            const deadList = global_dead_names[ctx.dataIndex];
-                            return (deadList && deadList.length > 0) ? 2.5 : 0;
-                        }, 
-                        pointBackgroundColor: '#ff003c', pointBorderColor: '#ff003c' 
-                    }
+                    { label: 'Valve', data: [], borderColor: '#bc13fe', borderWidth: 2, fill: true, backgroundColor: 'rgba(188, 19, 254, 0.1)', tension: 0.4, hitRadius: 25, pointRadius: (c) => c.dataIndex === c.dataset.data.length - 1 ? 0 : 2.5, pointBackgroundColor: '#bc13fe', pointBorderColor: '#bc13fe' },
+                    { label: 'Rockstar', data: [], borderColor: '#00f2ff', borderWidth: 2, fill: true, backgroundColor: 'rgba(0, 242, 255, 0.1)', tension: 0.4, hitRadius: 25, pointRadius: (c) => c.dataIndex === c.dataset.data.length - 1 ? 0 : 2.5, pointBackgroundColor: '#00f2ff', pointBorderColor: '#00f2ff' },
+                    { label: 'СДОХ', data: [], borderColor: '#ff003c', borderWidth: 2, showLine: true, hitRadius: 40, pointRadius: (c) => (global_dead_names[c.dataIndex] && global_dead_names[c.dataIndex].length > 0) ? 2.5 : 0, pointBackgroundColor: '#ff003c', pointBorderColor: '#ff003c' }
                 ]
             },
             options: {
@@ -118,7 +111,6 @@
 
                 const render = (list, targetId) => {
                     let html = '';
-                    if (!list) return;
                     list.forEach(s => {
                         const check = getSaved(s.name);
                         html += `<div class="row"><input type="checkbox" class="check-box" ${check ? 'checked' : ''} onchange="localStorage.setItem('mon_${s.name}', this.checked); update();"><span class="name">${s.name}</span><span class="val ${s.ping === 'СДОХ' ? 'bad' : 'ok'}">${s.ping === 'СДОХ' ? 'СДОХ' : s.ping + 'мс'}</span></div>`;
@@ -127,24 +119,18 @@
                 };
                 render(data.valve, 'valve_list'); render(data.gta, 'gta_list');
 
-                // ОБРАБОТКА ДАННЫХ ДЛЯ ГРАФИКА
-                global_dead_names = [...data.dead_names_h];
+                // ПРИКЛЕИВАЕМ ЖИВУЮ ЛИНИЮ
                 let labels = [...data.t_h];
                 let v_data = [...data.v_h];
                 let rs_data = [...data.rs_h];
                 let dead_data = [...data.dead_points];
+                global_dead_names = [...data.dead_names_h];
 
-                // ДОБАВЛЯЕМ "ЖИВУЮ" ТОЧКУ (ОБНОВЛЕНИЕ ПОЛОСЫ КАЖДЫЕ 5 СЕК)
-                // Если текущее время не совпадает с последней точкой в истории, 
-                // временно приклеиваем текущий пинг в конец графика.
-                if (labels[labels.length-1] !== data.last_update) {
+                if (labels[labels.length - 1] !== data.last_update) {
                     labels.push(data.last_update);
-                    v_data.push(data.live_v);
-                    rs_data.push(data.live_rs);
-                    
-                    // Проверяем текущий отвал для живой точки
-                    const currentDead = data.gta.filter(s => s.ping === 'СДОХ').length > 0;
-                    dead_data.push(0); 
+                    v_data.push(data.live_v || 0);
+                    rs_data.push(data.live_rs || 0);
+                    dead_data.push(0);
                     global_dead_names.push(data.gta.filter(s => s.ping === 'СДОХ').map(s => s.name));
                 }
 
@@ -152,10 +138,10 @@
                 mainChart.data.datasets[0].data = v_data;
                 mainChart.data.datasets[1].data = rs_data;
                 mainChart.data.datasets[2].data = dead_data;
-                
                 mainChart.update('none');
+
                 document.getElementById('start_t').innerText = labels[0];
-                document.getElementById('end_t').innerText = labels[labels.length-1];
+                document.getElementById('end_t').innerText = labels[labels.length - 1];
 
             } catch (e) { console.error(e); }
         }
