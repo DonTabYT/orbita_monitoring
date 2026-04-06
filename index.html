@@ -4,62 +4,179 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Орбита Мониторинг</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { background: #0a0a0b; color: #d1d1d1; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; justify-content: center; padding: 20px; }
-        .container { width: 100%; max-width: 600px; background: #111112; padding: 30px; border-radius: 12px; border: 1px solid #1f1f21; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h1 { color: #fff; font-size: 24px; margin: 0 0 5px 0; }
-        h2 { font-size: 14px; margin-top: 30px; color: #00e5ff; text-transform: uppercase; border-bottom: 1px solid #222; padding-bottom: 8px; letter-spacing: 1px; }
-        .row { display: flex; justify-content: space-between; padding: 12px 5px; border-bottom: 1px solid #1a1a1b; font-size: 15px; }
-        .ok { color: #00ff88; font-weight: bold; }
-        .bad { color: #ff3e3e; opacity: 0.5; }
-        .update-info { color: #555; font-size: 12px; margin-bottom: 20px; display: flex; align-items: center; }
-        .live-dot { width: 8px; height: 8px; background: #00ff88; border-radius: 50%; margin-right: 8px; box-shadow: 0 0 8px #00ff88; }
+        :root {
+            --bg: #050505;
+            --card-bg: #0f0f12;
+            --accent: #00e5ff;
+            --green: #00ff88;
+            --red: #ff3e3e;
+            --text-dim: #888;
+        }
+
+        body {
+            background: var(--bg);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .dashboard {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 24px;
+            border: 1px solid #1f1f24;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0,229,255,0.03) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0 0 5px 0;
+            letter-spacing: -1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-header {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-bottom: 30px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--green);
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 10px var(--green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        section { margin-top: 35px; }
+
+        h2 {
+            font-size: 11px;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            opacity: 0.8;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #1a1a1f;
+        }
+
+        .name { font-size: 14px; font-weight: 400; color: #ddd; }
+        .val { font-size: 14px; font-weight: 600; }
+        
+        .val.ok { color: var(--green); }
+        .val.bad { color: var(--red); opacity: 0.5; }
+
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 10px;
+            color: #333;
+            letter-spacing: 1px;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🛰️ Орбита Мониторинг</h1>
-        <div class="update-info"><div class="live-dot"></div> Обновлено: <span id="time">загрузка...</span></div>
+    <div class="dashboard">
+        <h1>🛰️ ORBITA</h1>
+        <div class="status-header"><div class="dot"></div> Обновлено: <span id="time">...</span></div>
         
-        <div id="gta_list"><h2>🔹 Rockstar Network</h2></div>
-        <div id="valve_list"><h2>🔸 Valve Relays</h2></div>
+        <section id="discord_sec">
+            <h2>Discord Services</h2>
+            <div id="discord_list"></div>
+        </section>
+
+        <section id="gta_sec">
+            <h2>Rockstar Network</h2>
+            <div id="gta_list"></div>
+        </section>
+
+        <section id="valve_sec">
+            <h2>Top 5 Valve Relays</h2>
+            <div id="valve_list"></div>
+        </section>
+
+        <div class="footer">POWERED BY FIREBASE & GITHUB</div>
     </div>
 
     <script>
         const DB_URL = "https://orbita-monitor-default-rtdb.firebaseio.com/data.json";
 
-        async function loadData() {
+        async function update() {
             try {
-                const response = await fetch(DB_URL);
-                const data = await response.json();
+                const res = await fetch(DB_URL);
+                const data = await res.json();
                 if (!data) return;
 
                 document.getElementById('time').innerText = data.last_update;
 
-                // Отрисовка GTA
-                let gtaHtml = '<h2>🔹 Rockstar Network</h2>';
-                data.gta.forEach(s => {
-                    const isOk = s.ping !== 'n/a';
-                    gtaHtml += `<div class="row"><span>${s.name}</span><span class="${isOk ? 'ok' : 'bad'}">${s.ping}${isOk ? 'ms' : ''}</span></div>`;
-                });
-                document.getElementById('gta_list').innerHTML = gtaHtml;
+                const render = (list, targetId) => {
+                    let html = '';
+                    list.forEach(s => {
+                        const isOk = s.ping !== 'n/a';
+                        html += `
+                        <div class="row">
+                            <span class="name">${s.name}</span>
+                            <span class="val ${isOk ? 'ok' : 'bad'}">${s.ping}${isOk ? 'ms' : ''}</span>
+                        </div>`;
+                    });
+                    document.getElementById(targetId).innerHTML = html;
+                };
 
-                // Отрисовка Valve
-                let valveHtml = '<h2>🔸 Valve Relays</h2>';
-                data.valve.forEach(s => {
-                    valveHtml += `<div class="row"><span>${s.name}</span><span class="ok">${s.ping}ms</span></div>`;
-                });
-                document.getElementById('valve_list').innerHTML = valveHtml;
+                render(data.discord, 'discord_list');
+                render(data.gta, 'gta_list');
+                render(data.valve, 'valve_list');
 
-            } catch (e) {
-                console.error("Ошибка получения данных:", e);
-                document.getElementById('time').innerText = "Ошибка связи с базой";
-            }
+            } catch (e) { console.error(e); }
         }
 
-        // Обновляем раз в 10 секунд
-        setInterval(loadData, 10000);
-        loadData();
+        setInterval(update, 10000);
+        update();
     </script>
 </body>
 </html>
