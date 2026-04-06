@@ -33,6 +33,11 @@
         .val.bad { color: var(--red); text-shadow: 0 0 10px rgba(255, 0, 60, 0.6); }
         .chart-wrapper { height: 260px; position: relative; margin-top: 10px; }
         .time-labels { display: flex; justify-content: space-between; margin-top: 12px; font-size: 9px; color: #444; font-weight: 800; text-transform: uppercase; }
+        
+        /* СТИЛЬ ФУТЕРА */
+        .footer { text-align: center; margin-top: 40px; font-size: 10px; color: rgba(255,255,255,0.2); letter-spacing: 1px; }
+        .author { color: var(--accent); text-decoration: none; font-weight: 900; text-shadow: 0 0 10px var(--accent); transition: 0.3s; }
+        .author:hover { opacity: 0.7; }
     </style>
 </head>
 <body>
@@ -49,6 +54,9 @@
                 <div class="time-labels"><span id="start_t">...</span><span id="end_t">...</span></div>
             </div>
         </main>
+        <footer class="footer">
+            by <a href="https://t.me/maybedontab" target="_blank" class="author">@maybedontab</a>
+        </footer>
     </div>
 
     <script>
@@ -65,9 +73,12 @@
                 { label: 'Rockstar', data: [], borderColor: '#00f2ff', borderWidth: 2, fill: true, backgroundColor: 'rgba(0, 242, 255, 0.1)', tension: 0.4, hitRadius: 25, pointRadius: (c) => c.dataIndex === c.dataset.data.length - 1 ? 0 : 2.5, pointBackgroundColor: '#00f2ff', pointBorderColor: '#00f2ff' },
                 { 
                     label: 'СДОХ', data: [], borderColor: '#ff003c', borderWidth: 2, 
-                    showLine: true, spanGaps: false, // ИСПРАВИЛ: линия исчезнет при пропусках
-                    hitRadius: 40, 
-                    pointRadius: (c) => (global_dead_names[c.dataIndex] && global_dead_names[c.dataIndex].length > 0) ? 2.5 : 0, 
+                    showLine: true, spanGaps: false, hitRadius: 40, 
+                    /* ИСПРАВИЛ: ТОЧКА УДАЛЯЕТСЯ ЕСЛИ НЕТ ОТВАЛА */
+                    pointRadius: (c) => {
+                        const val = c.dataset.data[c.dataIndex];
+                        return (val !== null && global_dead_names[c.dataIndex]?.length > 0) ? 2.5 : 0;
+                    }, 
                     pointBackgroundColor: '#ff003c', pointBorderColor: '#ff003c' 
                 }
             ]},
@@ -124,7 +135,6 @@
                 };
                 render(data.valve, 'valve_list'); render(data.gta, 'gta_list');
 
-                // СКЛЕЙКА ИСТОРИИ И ЖИВОЙ ЛИНИИ
                 let labels = [...data.t_h];
                 let v_data = [...data.v_h];
                 let rs_data = [...data.rs_h];
@@ -137,7 +147,8 @@
                     rs_data.push(data.live_rs || 0);
                     
                     const currentDead = [].concat(data.valve || [], data.gta || []).filter(s => s.ping === 'СДОХ').map(s => s.name);
-                    dead_data.push(currentDead.length > 0 ? 0 : null); // ТУТ ИСПРАВИЛ
+                    // ИСПРАВИЛ: Если нет отвала - пушим null, линия и точка пропадут
+                    dead_data.push(currentDead.length > 0 ? 0 : null); 
                     global_dead_names.push(currentDead);
                 }
 
