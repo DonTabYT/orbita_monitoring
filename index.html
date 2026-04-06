@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Орбита Мониторинг</title>
+    <style>
+        body { background: #0a0a0b; color: #d1d1d1; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; justify-content: center; padding: 20px; }
+        .container { width: 100%; max-width: 600px; background: #111112; padding: 30px; border-radius: 12px; border: 1px solid #1f1f21; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h1 { color: #fff; font-size: 24px; margin: 0 0 5px 0; }
+        h2 { font-size: 14px; margin-top: 30px; color: #00e5ff; text-transform: uppercase; border-bottom: 1px solid #222; padding-bottom: 8px; letter-spacing: 1px; }
+        .row { display: flex; justify-content: space-between; padding: 12px 5px; border-bottom: 1px solid #1a1a1b; font-size: 15px; }
+        .ok { color: #00ff88; font-weight: bold; }
+        .bad { color: #ff3e3e; opacity: 0.5; }
+        .update-info { color: #555; font-size: 12px; margin-bottom: 20px; display: flex; align-items: center; }
+        .live-dot { width: 8px; height: 8px; background: #00ff88; border-radius: 50%; margin-right: 8px; box-shadow: 0 0 8px #00ff88; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛰️ Орбита Мониторинг</h1>
+        <div class="update-info"><div class="live-dot"></div> Обновлено: <span id="time">загрузка...</span></div>
+        
+        <div id="gta_list"><h2>🔹 Rockstar Network</h2></div>
+        <div id="valve_list"><h2>🔸 Valve Relays</h2></div>
+    </div>
+
+    <script>
+        const DB_URL = "https://orbita-monitor-default-rtdb.firebaseio.com/data.json";
+
+        async function loadData() {
+            try {
+                const response = await fetch(DB_URL);
+                const data = await response.json();
+                if (!data) return;
+
+                document.getElementById('time').innerText = data.last_update;
+
+                // Отрисовка GTA
+                let gtaHtml = '<h2>🔹 Rockstar Network</h2>';
+                data.gta.forEach(s => {
+                    const isOk = s.ping !== 'n/a';
+                    gtaHtml += `<div class="row"><span>${s.name}</span><span class="${isOk ? 'ok' : 'bad'}">${s.ping}${isOk ? 'ms' : ''}</span></div>`;
+                });
+                document.getElementById('gta_list').innerHTML = gtaHtml;
+
+                // Отрисовка Valve
+                let valveHtml = '<h2>🔸 Valve Relays</h2>';
+                data.valve.forEach(s => {
+                    valveHtml += `<div class="row"><span>${s.name}</span><span class="ok">${s.ping}ms</span></div>`;
+                });
+                document.getElementById('valve_list').innerHTML = valveHtml;
+
+            } catch (e) {
+                console.error("Ошибка получения данных:", e);
+                document.getElementById('time').innerText = "Ошибка связи с базой";
+            }
+        }
+
+        // Обновляем раз в 10 секунд
+        setInterval(loadData, 10000);
+        loadData();
+    </script>
+</body>
+</html>
