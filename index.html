@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ОРБИТА ХУЙНЯ</title>
-    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@900&family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -34,17 +34,24 @@
             filter: drop-shadow(0 0 15px rgba(188, 19, 254, 0.8));
         }
         
-        .status-bar { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 10px; color: rgba(188, 19, 254, 0.5); margin-top: 10px; }
+        /* ВЫРАВНИВАНИЕ ШАПКИ */
+        .status-bar { 
+            display: flex; align-items: center; justify-content: center; 
+            gap: 8px; margin-top: 10px; font-size: 10px;
+            color: rgba(188, 19, 254, 0.5); font-weight: 800; text-transform: uppercase;
+        }
         
-        /* ИСПРАВИЛ: Видимость (5 СЕК) */
+        #time { 
+            color: #fff; font-weight: 900; font-size: 11px; 
+            letter-spacing: 1px; display: inline-block; line-height: 1;
+        }
+
         .refresh-rate { 
-            color: #fff; 
-            opacity: 1; 
-            font-size: 9px; 
-            margin-left: 8px; 
-            letter-spacing: 1px; 
-            font-weight: 900;
-            text-shadow: 0 0 5px rgba(255,255,255,0.5);
+            color: #fff; font-size: 9px; font-weight: 900;
+            text-shadow: 0 0 8px rgba(255,255,255,0.5);
+            background: rgba(255,255,255,0.1);
+            padding: 3px 7px; border-radius: 5px;
+            display: inline-block; line-height: 1;
         }
 
         .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 15px var(--accent); animation: pulse 2s infinite; }
@@ -58,15 +65,23 @@
 
         h2 { font-size: 10px; font-weight: 900; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; }
 
-        .row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 14px; }
+        .row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 14px; }
         .row:last-child { border-bottom: none; }
-        .name { color: rgba(255, 255, 255, 0.5); }
-        .val { font-variant-numeric: tabular-nums; font-weight: 600; }
+        
+        .check-box {
+            margin-right: 15px; appearance: none; width: 14px; height: 14px;
+            border: 2px solid rgba(255,255,255,0.2); border-radius: 4px;
+            cursor: pointer; transition: 0.3s; position: relative;
+        }
+        .check-box:checked { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px var(--accent); }
+        .check-box:checked::after { content: '✔'; position: absolute; font-size: 10px; color: #fff; left: 1px; top: -1px; }
 
+        .name { color: rgba(255, 255, 255, 0.5); flex-grow: 1; }
+        .val { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 50px; text-align: right; }
         .val.ok { color: var(--green); text-shadow: 0 0 10px rgba(0, 255, 136, 0.6); }
         .val.bad { color: var(--red); text-shadow: 0 0 10px rgba(255, 0, 60, 0.6); }
 
-        .chart-wrapper { height: 220px; position: relative; margin-top: 10px; }
+        .chart-wrapper { height: 260px; position: relative; margin-top: 10px; }
         .time-labels { display: flex; justify-content: space-between; margin-top: 12px; font-size: 9px; color: #444; font-weight: 800; text-transform: uppercase; }
 
         .footer { text-align: center; margin-top: 40px; font-size: 10px; color: rgba(255,255,255,0.1); }
@@ -79,7 +94,7 @@
             <h1>🛰️ ОРБИТА ХУЙНЯ</h1>
             <div class="status-bar">
                 <div class="dot" id="status_dot"></div> 
-                ОБНОВЛЕНО <span id="time" style="color:#fff">...</span> 
+                <span>ОБНОВЛЕНО</span> <span id="time">...</span> 
                 <span class="refresh-rate">(5 СЕК)</span>
             </div>
         </header>
@@ -89,20 +104,18 @@
                 <h2>СЕРВЕРА VALVE</h2>
                 <div id="valve_list"></div>
             </div>
-
             <div class="card">
                 <h2>СЕРВЕРА ROCKSTAR</h2>
                 <div id="gta_list"></div>
             </div>
-
             <div class="card">
                 <h2>МОНИТОРИНГ СТАБИЛЬНОСТИ</h2>
                 <div class="chart-wrapper">
                     <canvas id="mainChart"></canvas>
                 </div>
                 <div class="time-labels">
-                    <span id="start_t">начало</span>
-                    <span id="end_t">сейчас</span>
+                    <span id="start_t">...</span>
+                    <span id="end_t">...</span>
                 </div>
             </div>
         </main>
@@ -116,12 +129,15 @@
         const DB_URL = "https://orbita-monitor-default-rtdb.firebaseio.com/data.json";
         const ctx = document.getElementById('mainChart').getContext('2d');
         
-        const gradV = ctx.createLinearGradient(0, 0, 0, 220);
-        gradV.addColorStop(0, 'rgba(188, 19, 254, 0.4)');
+        const getSaved = (n) => localStorage.getItem('mon_' + n) !== 'false';
+        let h_v = [], h_rs = [], h_dead = [], h_dead_names = [], h_t = [];
+
+        const gradV = ctx.createLinearGradient(0, 0, 0, 260);
+        gradV.addColorStop(0, 'rgba(188, 19, 254, 0.3)');
         gradV.addColorStop(1, 'rgba(188, 19, 254, 0)');
 
-        const gradRS = ctx.createLinearGradient(0, 0, 0, 220);
-        gradRS.addColorStop(0, 'rgba(0, 242, 255, 0.3)');
+        const gradRS = ctx.createLinearGradient(0, 0, 0, 260);
+        gradRS.addColorStop(0, 'rgba(0, 242, 255, 0.25)');
         gradRS.addColorStop(1, 'rgba(0, 242, 255, 0)');
 
         const mainChart = new Chart(ctx, {
@@ -130,36 +146,81 @@
                 labels: [],
                 datasets: [
                     { 
-                        label: 'Valve', data: [], borderColor: '#bc13fe', borderWidth: 3, 
-                        fill: true, backgroundColor: gradV, pointRadius: 2, pointHoverRadius: 6, tension: 0.4,
-                        // ИСПРАВИЛ: Красный сегмент для упавших серверов
-                        segment: { 
-                            borderColor: ctx => ctx.p1.parsed.y === 0 || ctx.p0.parsed.y === 0 ? '#ff003c' : undefined 
-                        },
-                        pointBackgroundColor: ctx => ctx.raw === 0 ? '#ff003c' : '#bc13fe'
+                        label: 'Valve', data: [], borderColor: '#bc13fe', borderWidth: 2, 
+                        fill: true, backgroundColor: gradV, pointRadius: 0, 
+                        tension: 0.4,
+                        /* ИСПРАВИЛ: ОГРОМНЫЙ ХИТБОКС */
+                        hitRadius: 25, hoverRadius: 0 
                     },
                     { 
-                        label: 'Rockstar', data: [], borderColor: '#00f2ff', borderWidth: 3, 
-                        fill: true, backgroundColor: gradRS, pointRadius: 2, pointHoverRadius: 6, tension: 0.4,
-                        // ИСПРАВИЛ: Красный сегмент для упавших серверов
-                        segment: { 
-                            borderColor: ctx => ctx.p1.parsed.y === 0 || ctx.p0.parsed.y === 0 ? '#ff003c' : undefined 
-                        },
-                        pointBackgroundColor: ctx => ctx.raw === 0 ? '#ff003c' : '#00f2ff'
+                        label: 'Rockstar', data: [], borderColor: '#00f2ff', borderWidth: 2, 
+                        fill: true, backgroundColor: gradRS, pointRadius: 0, 
+                        tension: 0.4,
+                        /* ИСПРАВИЛ: ОГРОМНЫЙ ХИТБОКС */
+                        hitRadius: 25, hoverRadius: 0
+                    },
+                    { 
+                        label: 'СДОХ (Offline)', data: [], borderColor: '#ff003c', borderWidth: 2, 
+                        pointRadius: ctx => ctx.raw > 0 ? 4 : 0, pointHoverRadius: 8, 
+                        pointBackgroundColor: '#ff003c', showLine: true, tension: 0,
+                        /* ИСПРАВИЛ: ХИТБОКС ДЛЯ КРАСНОЙ ЛИНИИ ЕЩЕ БОЛЬШЕ */
+                        hitRadius: 40 
                     }
                 ]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                interaction: { mode: 'index', intersect: false },
+                /* ИСПРАВИЛ: Режим наведения - ловит ближайший элемент по осям */
+                interaction: { mode: 'nearest', axis: 'xy', intersect: true },
                 plugins: { 
-                    legend: { display: true, labels: { color: '#555', usePointStyle: true, pointStyle: 'line', boxWidth: 20, font: { size: 10, weight: 'bold' } } },
+                    legend: { 
+                        display: true, 
+                        labels: { color: '#555', usePointStyle: true, pointStyle: 'line', boxWidth: 15 } 
+                    },
                     tooltip: {
                         enabled: true,
-                        backgroundColor: 'rgba(15, 15, 20, 0.9)',
+                        backgroundColor: 'rgba(10, 10, 15, 0.95)',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                        padding: 15,
+                        displayColors: true,
                         callbacks: {
-                            title: (c) => 'Время: ' + c[0].label,
-                            label: (c) => ` ${c.dataset.label}: ${c.raw === 0 ? 'СДОХ' : c.raw + 'мс'}`
+                            title: (c) => 'ВРЕМЯ: ' + c[0].label,
+                            label: (c) => {
+                                if (c.datasetIndex === 0 || c.datasetIndex === 1) {
+                                    return ` ${c.dataset.label}: ${c.raw === 0 ? 'СДОХ' : c.raw + 'мс'}`;
+                                }
+                                if (c.datasetIndex === 2) return '⚠️ СТАТУС: ОБНАРУЖЕН ОТВАЛ';
+                                return null;
+                            },
+                            afterBody: (c) => {
+                                const item = c[0];
+                                if (item.datasetIndex === 2) {
+                                    const dead = h_dead_names[item.dataIndex];
+                                    if (dead && dead.length > 0) {
+                                        return [
+                                            '',
+                                            '-----------------------',
+                                            '⚠️ В ОТВАЛЕ:',
+                                            ...dead.map(name => ' • ' + name)
+                                        ];
+                                    }
+                                }
+                                return null;
+                            }
+                        },
+                        filter: function(tooltipItem) {
+                            // Логика разделения окон:
+                            // Если навели на красную - показываем только её.
+                            // Иначе показываем Valve/Rockstar.
+                            const chart = tooltipItem.chart;
+                            const activeElements = chart.getActiveElements();
+                            if (activeElements.length > 0) {
+                                const hoveredDatasetIndex = activeElements[0].datasetIndex;
+                                if (hoveredDatasetIndex === 2) return tooltipItem.datasetIndex === 2;
+                                return tooltipItem.datasetIndex !== 2;
+                            }
+                            return true;
                         }
                     }
                 },
@@ -184,30 +245,58 @@
                 document.getElementById('status_dot').style.background = isOff ? '#ff003c' : '#bc13fe';
                 document.getElementById('time').innerText = data.last_update;
 
-                if (data.v_h && data.rs_h && data.t_h) {
-                    mainChart.data.labels = data.t_h;
-                    mainChart.data.datasets[0].data = data.v_h;
-                    mainChart.data.datasets[1].data = data.rs_h;
-                    mainChart.update('none');
-                    document.getElementById('start_t').innerText = data.t_h[0];
-                    document.getElementById('end_t').innerText = data.t_h.at(-1);
-                }
-
                 const render = (list, targetId) => {
                     let html = '';
                     list.forEach(s => {
-                        const dead = s.ping === 'СДОХ' || s.ping === 0;
-                        html += `<div class="row"><span class="name">${s.name}</span><span class="val ${dead ? 'bad' : 'ok'}">${dead ? 'СДОХ' : s.ping + 'мс'}</span></div>`;
+                        const check = getSaved(s.name);
+                        const isDead = s.ping === 'СДОХ' || s.ping === 0;
+                        html += `
+                        <div class="row">
+                            <input type="checkbox" class="check-box" ${check ? 'checked' : ''} 
+                                   onchange="localStorage.setItem('mon_${s.name}', this.checked); update();">
+                            <span class="name">${s.name}</span>
+                            <span class="val ${isDead ? 'bad' : 'ok'}">${isDead ? 'СДОХ' : s.ping + 'мс'}</span>
+                        </div>`;
                     });
                     document.getElementById(targetId).innerHTML = html;
                 };
 
                 render(data.valve, 'valve_list'); render(data.gta, 'gta_list');
+
+                const getAvg = (list) => {
+                    const active = list.filter(s => getSaved(s.name) && s.ping !== 'СДОХ' && s.ping !== 0);
+                    return active.length ? Math.round(active.reduce((a,b)=>a+b.ping,0)/active.length) : 0;
+                };
+                
+                const getDeadNames = () => {
+                    const all = [...data.valve, ...data.gta];
+                    return all.filter(s => getSaved(s.name) && (s.ping === 'СДОХ' || s.ping === 0)).map(s => s.name);
+                };
+
+                const currentV = getAvg(data.valve);
+                const currentRS = getAvg(data.gta);
+                const deadList = getDeadNames();
+
+                if (h_t.at(-1) !== data.last_update) {
+                    h_v.push(currentV); h_rs.push(currentRS); h_t.push(data.last_update);
+                    h_dead_names.push(deadList);
+                    h_dead.push(deadList.length > 0 ? 5 : 0);
+                    if (h_v.length > 30) { h_v.shift(); h_rs.shift(); h_t.shift(); h_dead.shift(); h_dead_names.shift(); }
+                }
+
+                mainChart.data.labels = h_t;
+                mainChart.data.datasets[0].data = h_v;
+                mainChart.data.datasets[1].data = h_rs;
+                mainChart.data.datasets[2].data = h_dead;
+                mainChart.update('none');
+
+                document.getElementById('start_t').innerText = h_t[0] || '...';
+                document.getElementById('end_t').innerText = h_t.at(-1) || '...';
+
             } catch (e) {}
         }
 
-        update();
-        setInterval(update, 5000);
+        update(); setInterval(update, 5000);
     </script>
 </body>
 </html>
