@@ -34,7 +34,7 @@
             padding: 40px;
             border-radius: 24px;
             border: 1px solid #1f1f24;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
             position: relative;
             overflow: hidden;
         }
@@ -46,29 +46,27 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(0,229,255,0.03) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(0,229,255,0.04) 0%, transparent 60%);
             pointer-events: none;
         }
 
         h1 {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 800;
-            margin: 0 0 5px 0;
+            margin: 0 0 8px 0;
             letter-spacing: -1px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            color: #fff;
         }
 
         .status-header {
             display: flex;
             align-items: center;
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-dim);
             margin-bottom: 30px;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
         }
 
         .dot {
@@ -76,72 +74,87 @@
             height: 8px;
             background: var(--green);
             border-radius: 50%;
-            margin-right: 8px;
-            box-shadow: 0 0 10px var(--green);
-            animation: pulse 2s infinite;
+            margin-right: 10px;
+            box-shadow: 0 0 12px var(--green);
+            animation: pulse 2.5s infinite;
         }
 
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.4; }
-            100% { opacity: 1; }
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.1); }
+            100% { opacity: 1; transform: scale(1); }
         }
 
         section { margin-top: 35px; }
 
         h2 {
-            font-size: 11px;
+            font-size: 10px;
             color: var(--accent);
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 2.5px;
             margin-bottom: 15px;
-            opacity: 0.8;
+            font-weight: 800;
         }
 
         .row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 0;
+            padding: 14px 0;
             border-bottom: 1px solid #1a1a1f;
         }
 
-        .name { font-size: 14px; font-weight: 400; color: #ddd; }
-        .val { font-size: 14px; font-weight: 600; }
+        .row:last-child { border-bottom: none; }
+
+        .name { font-size: 14px; font-weight: 400; color: #eee; }
+        .val { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
         
         .val.ok { color: var(--green); }
-        .val.bad { color: var(--red); opacity: 0.5; }
+        .val.bad { color: var(--red); opacity: 0.6; }
 
         .footer {
-            margin-top: 40px;
+            margin-top: 50px;
             text-align: center;
             font-size: 10px;
-            color: #333;
+            color: #3a3a3f;
             letter-spacing: 1px;
+            font-weight: 600;
         }
+
+        .author {
+            color: var(--accent);
+            text-decoration: none;
+            opacity: 0.7;
+            transition: 0.3s;
+        }
+
+        .author:hover { opacity: 1; }
     </style>
 </head>
 <body>
     <div class="dashboard">
-        <h1>🛰️ ORBITA</h1>
-        <div class="status-header"><div class="dot"></div> Обновлено: <span id="time">...</span></div>
+        <h1>🛰️ ОРБИТА</h1>
+        <div class="status-header"><div class="dot"></div> Обновлено: <span id="time">загрузка...</span></div>
         
         <section id="discord_sec">
-            <h2>Discord Services</h2>
+            <h2>Сервисы Discord</h2>
             <div id="discord_list"></div>
         </section>
 
         <section id="gta_sec">
-            <h2>Rockstar Network</h2>
+            <h2>Сеть Rockstar (GTA 5)</h2>
             <div id="gta_list"></div>
         </section>
 
         <section id="valve_sec">
-            <h2>Top 5 Valve Relays</h2>
+            <h2>Топ-5 серверов Valve</h2>
             <div id="valve_list"></div>
         </section>
 
-        <div class="footer">POWERED BY FIREBASE & GITHUB</div>
+        <div class="footer">
+            БАЗА ДАННЫХ FIREBASE & GITHUB PAGES <br>
+            <span style="margin-top: 10px; display: block;">by <span class="author">@maybedontab</span></span>
+        </div>
     </div>
 
     <script>
@@ -157,14 +170,18 @@
 
                 const render = (list, targetId) => {
                     let html = '';
-                    list.forEach(s => {
-                        const isOk = s.ping !== 'n/a';
-                        html += `
-                        <div class="row">
-                            <span class="name">${s.name}</span>
-                            <span class="val ${isOk ? 'ok' : 'bad'}">${s.ping}${isOk ? 'ms' : ''}</span>
-                        </div>`;
-                    });
+                    if (!list || list.length === 0) {
+                        html = '<div class="row"><span class="name" style="color:#444">Ожидание данных...</span></div>';
+                    } else {
+                        list.forEach(s => {
+                            const isOk = s.ping !== 'n/a';
+                            html += `
+                            <div class="row">
+                                <span class="name">${s.name}</span>
+                                <span class="val ${isOk ? 'ok' : 'bad'}">${s.ping}${isOk ? 'мс' : ''}</span>
+                            </div>`;
+                        });
+                    }
                     document.getElementById(targetId).innerHTML = html;
                 };
 
@@ -172,7 +189,9 @@
                 render(data.gta, 'gta_list');
                 render(data.valve, 'valve_list');
 
-            } catch (e) { console.error(e); }
+            } catch (e) { 
+                document.getElementById('time').innerText = "ОШИБКА СЕТИ";
+            }
         }
 
         setInterval(update, 10000);
