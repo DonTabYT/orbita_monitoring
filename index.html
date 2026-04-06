@@ -15,14 +15,12 @@
         .dashboard { width: 100%; max-width: 500px; }
         header { margin-bottom: 40px; text-align: center; }
         h1 { font-family: 'Unbounded', cursive; font-size: 28px; background: linear-gradient(180deg, #fff 0%, #bc13fe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 15px rgba(188, 19, 254, 0.8)); text-shadow: 0 0 5px rgba(255, 255, 255, 0.2); }
-        .status-bar { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; font-size: 10px; color: rgba(188, 19, 254, 0.5); font-weight: 800; text-transform: uppercase; min-height: 20px; }
-        #time-label { transition: 0.3s; }
+        .status-bar { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; font-size: 10px; color: rgba(188, 19, 254, 0.5); font-weight: 800; text-transform: uppercase; min-height: 25px; }
         #time { color: #fff; font-weight: 900; font-size: 11px; letter-spacing: 1px; }
         .refresh-rate { color: #fff; font-size: 9px; font-weight: 900; text-shadow: 0 0 8px rgba(255,255,255,0.5); background: rgba(255,255,255,0.1); padding: 3px 7px; border-radius: 5px; }
         .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 15px var(--accent); animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        .card { background: var(--glass); backdrop-filter: blur(25px) saturate(160%); border: 1px solid var(--glass-border); border-radius: 32px; padding: 25px; margin-bottom: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); transition: 0.5s; }
-        .card.offline { opacity: 0.2; filter: grayscale(1); pointer-events: none; }
+        .card { background: var(--glass); backdrop-filter: blur(25px) saturate(160%); border: 1px solid var(--glass-border); border-radius: 32px; padding: 25px; margin-bottom: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); transition: 0.4s; }
         h2 { font-size: 10px; font-weight: 900; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; }
         .row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 14px; }
         .row:last-child { border-bottom: none; }
@@ -35,6 +33,8 @@
         .val.bad { color: var(--red); text-shadow: 0 0 10px rgba(255, 0, 60, 0.6); }
         .chart-wrapper { height: 260px; position: relative; margin-top: 10px; }
         .time-labels { display: flex; justify-content: space-between; margin-top: 12px; font-size: 9px; color: #444; font-weight: 800; text-transform: uppercase; }
+        
+        /* ФУТЕР ВЕРНУЛСЯ */
         .footer { text-align: center; margin-top: 40px; font-size: 10px; color: rgba(255,255,255,0.2); letter-spacing: 1px; }
         .author { color: var(--accent); text-decoration: none; font-weight: 900; text-shadow: 0 0 10px var(--accent); }
     </style>
@@ -46,20 +46,22 @@
             <div class="status-bar">
                 <div class="dot" id="status_dot"></div>
                 <span id="status_text">
-                    <span id="time-label">ОБНОВЛЕНО</span> <span id="time">...</span>
+                    <span>ОБНОВЛЕНО</span> <span id="time">...</span>
                 </span>
                 <span class="refresh-rate" id="ref_badge">(5 СЕК)</span>
             </div>
         </header>
-        <main id="main_content">
-            <div class="card"><h2>TOP 5 VALVE SERVERS</h2><div id="valve_list">Загрузка...</div></div>
-            <div class="card"><h2>СЕРВЕРА ROCKSTAR</h2><div id="gta_list">Загрузка...</div></div>
+        <main id="main_ui">
+            <div class="card"><h2>TOP 5 VALVE SERVERS</h2><div id="valve_list"></div></div>
+            <div class="card"><h2>СЕРВЕРА ROCKSTAR</h2><div id="gta_list"></div></div>
             <div class="card"><h2>МОНИТОРИНГ СТАБИЛЬНОСТИ (1 ЧАС)</h2>
                 <div class="chart-wrapper"><canvas id="mainChart"></canvas></div>
                 <div class="time-labels"><span id="start_t">...</span><span id="end_t">...</span></div>
             </div>
         </main>
-        <footer class="footer">by <a href="https://t.me/maybedontab" target="_blank" class="author">@maybedontab</a></footer>
+        <footer class="footer">
+            by <a href="https://t.me/maybedontab" target="_blank" class="author">@maybedontab</a>
+        </footer>
     </div>
 
     <script>
@@ -80,11 +82,15 @@
                 interaction: { mode: 'nearest', axis: 'xy', intersect: true },
                 plugins: {
                     legend: { display: true, labels: { color: '#555', usePointStyle: true, pointStyle: 'line' } },
-                    tooltip: { enabled: true, usePointStyle: true, callbacks: {
-                        title: (c) => 'ВРЕМЯ: ' + c[0].label,
-                        label: (c) => c.datasetIndex === 2 ? 'СТАТУС: ОТВАЛ' : ` ${c.dataset.label}: ${c.raw === 0 ? 'СДОХ' : Math.round(c.raw) + 'мс'}`,
-                        afterBody: (c) => { if (c[0].datasetIndex === 2) { const dead = global_dead_names[c[0].dataIndex]; if (dead?.length) return ['', 'В ОТВАЛЕ:', ...dead.map(n => ' • ' + n)]; } return null; }
-                    }, filter: (item) => { const active = item.chart.getActiveElements(); if (active.length > 0) { return active[0].datasetIndex === 2 ? item.datasetIndex === 2 : item.datasetIndex !== 2; } return true; }}
+                    tooltip: {
+                        enabled: true, usePointStyle: true,
+                        callbacks: {
+                            title: (c) => 'ВРЕМЯ: ' + c[0].label,
+                            label: (c) => c.datasetIndex === 2 ? 'СТАТУС: ОТВАЛ' : ` ${c.dataset.label}: ${c.raw === 0 ? 'СДОХ' : Math.round(c.raw) + 'мс'}`,
+                            afterBody: (c) => { if (c[0].datasetIndex === 2) { const dead = global_dead_names[c[0].dataIndex]; if (dead && dead.length > 0) return ['', 'В ОТВАЛЕ:', ...dead.map(n => ' • ' + n)]; } return null; }
+                        },
+                        filter: (item) => { const active = item.chart.getActiveElements(); if (active.length > 0) { return active[0].datasetIndex === 2 ? item.datasetIndex === 2 : item.datasetIndex !== 2; } return true; }
+                    }
                 },
                 scales: { x: { display: false }, y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'rgba(255,255,255,0.1)', font: { size: 9 } } } }
             }
@@ -97,27 +103,27 @@
                 if (!data) return;
 
                 const diff = (Date.now() / 1000 - (data.timestamp || 0));
-                const statusDot = document.getElementById('status_dot');
-                const statusArea = document.getElementById('status_text');
+                const sText = document.getElementById('status_text');
+                const sDot = document.getElementById('status_dot');
                 const badge = document.getElementById('ref_badge');
-                const main = document.getElementById('main_content');
+                const mainUI = document.getElementById('main_ui');
 
-                // ПРОВЕРКА СТАТУСОВ
+                // ПРОВЕРКА СОСТОЯНИЯ ХОСТА
                 if (data.status === 'offline') {
-                    statusDot.style.background = '#ff003c';
-                    statusArea.innerHTML = '<span style="color:#ff003c">Хост сейчас отдыхает (ПК с которого мониторинг - выключен)</span>';
+                    sDot.style.background = '#ff003c';
+                    sText.innerHTML = '<span style="color:#ff003c">Хост сейчас отдыхает (ПК с которого мониторинг - выключен)</span>';
                     badge.style.display = 'none';
-                    main.style.opacity = '0.2';
+                    mainUI.style.opacity = '0.3';
                 } else if (diff > 15) {
-                    statusDot.style.background = '#ff003c';
-                    statusArea.innerHTML = '<span style="color:#ff003c">Орбита сейчас посасывает член, ожидаем</span>';
+                    sDot.style.background = '#ff003c';
+                    sText.innerHTML = '<span style="color:#ff003c">Орбита сейчас посасывает член, ожидаем</span>';
                     badge.style.display = 'none';
-                    main.style.opacity = '0.2';
+                    mainUI.style.opacity = '0.3';
                 } else {
-                    statusDot.style.background = '#bc13fe';
-                    statusArea.innerHTML = '<span>ОБНОВЛЕНО</span> <span id="time">' + data.last_update + '</span>';
+                    sDot.style.background = '#bc13fe';
+                    sText.innerHTML = '<span>ОБНОВЛЕНО</span> <span id="time">' + data.last_update + '</span>';
                     badge.style.display = 'inline-block';
-                    main.style.opacity = '1';
+                    mainUI.style.opacity = '1';
                 }
 
                 if (!data.t_h) return;
@@ -127,8 +133,7 @@
                     let html = '';
                     list.forEach(s => {
                         const check = getSaved(s.name);
-                        const isDead = s.ping === 'СДОХ' || s.ping === 0;
-                        html += `<div class="row"><input type="checkbox" class="check-box" ${check ? 'checked' : ''} onchange="localStorage.setItem('mon_${s.name}', this.checked); update();"><span class="name">${s.name}</span><span class="val ${isDead ? 'bad' : 'ok'}">${isDead ? 'СДОХ' : s.ping + 'мс'}</span></div>`;
+                        html += `<div class="row"><input type="checkbox" class="check-box" ${check ? 'checked' : ''} onchange="localStorage.setItem('mon_${s.name}', this.checked); update();"><span class="name">${s.name}</span><span class="val ${s.ping === 'СДОХ' ? 'bad' : 'ok'}">${s.ping === 'СДОХ' ? 'СДОХ' : s.ping + 'мс'}</span></div>`;
                     });
                     document.getElementById(targetId).innerHTML = html;
                 };
@@ -139,9 +144,9 @@
 
                 if (labels.length > 0 && labels[labels.length - 1] !== data.last_update) {
                     labels.push(data.last_update); v_data.push(data.live_v || 0); rs_data.push(data.live_rs || 0);
-                    const curDead = [].concat(data.valve || [], data.gta || []).filter(s => s.ping === 'СДОХ').map(s => s.name);
-                    dead_data.push(curDead.length > 0 ? 0 : null);
-                    global_dead_names.push(curDead);
+                    const currentDead = [].concat(data.valve || [], data.gta || []).filter(s => s.ping === 'СДОХ').map(s => s.name);
+                    dead_data.push(currentDead.length > 0 ? 0 : null);
+                    global_dead_names.push(currentDead);
                 }
 
                 mainChart.data.labels = labels;
@@ -151,10 +156,8 @@
                 mainChart.update('none');
                 document.getElementById('start_t').innerText = labels[0] || '...';
                 document.getElementById('end_t').innerText = labels[labels.length - 1] || '...';
-
             } catch (e) { console.error(e); }
         }
-
         update(); setInterval(update, 5000);
     </script>
 </body>
