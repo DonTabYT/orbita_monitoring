@@ -4,259 +4,175 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ОРБИТА ХУЙНЯ</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --accent: #bc13fe;
+            --rs: #00f2ff;
             --green: #00ff88;
             --red: #ff003c;
             --bg: #050508;
-            --glass: rgba(255, 255, 255, 0.02);
-            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
         }
 
         body {
             background: var(--bg);
-            background-image: radial-gradient(circle at center, #1a0b2e 0%, #050508 100%);
-            color: #fff;
-            font-family: 'Inter', sans-serif;
-            -webkit-font-smoothing: antialiased;
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 40px 20px;
+            background-image: radial-gradient(circle at center, #1a0b2e 0%, #050508 80%);
+            color: #fff; font-family: 'Inter', sans-serif;
+            display: flex; justify-content: center; min-height: 100vh; margin: 0; padding: 40px 20px;
         }
 
-        .dashboard { width: 100%; max-width: 900px; }
-
+        .dashboard { width: 100%; max-width: 500px; }
         header { margin-bottom: 40px; text-align: center; }
-
-        h1 {
-            font-family: 'Unbounded', cursive;
-            font-size: 32px;
-            font-weight: 900;
-            margin: 0;
-            text-transform: uppercase;
-            background: linear-gradient(180deg, #fff 0%, #bc13fe 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 15px rgba(188, 19, 254, 0.4));
-        }
-
-        .status-bar {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            font-size: 11px;
-            font-weight: 800;
-            color: rgba(188, 19, 254, 0.6);
-            margin-top: 15px;
-            letter-spacing: 2px;
-        }
-
-        #time { color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
-
-        .dot {
-            width: 8px; height: 8px;
-            background: var(--accent);
-            border-radius: 50%;
-            box-shadow: 0 0 15px var(--accent);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-
-        #offline_msg {
-            display: none;
-            text-align: center;
-            padding: 25px;
-            background: rgba(255, 0, 60, 0.1);
-            border: 2px solid var(--red);
-            border-radius: 24px;
-            margin-bottom: 30px;
-            font-weight: 900;
-            color: var(--red);
-            text-transform: uppercase;
-            backdrop-filter: blur(15px);
-            box-shadow: 0 0 30px rgba(255, 0, 60, 0.2);
-        }
-
-        /* СЕТКА КАРТОЧЕК */
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 25px;
-        }
+        h1 { font-family: 'Unbounded', cursive; font-size: 26px; background: linear-gradient(180deg, #fff 0%, #bc13fe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .status-bar { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 10px; color: rgba(188, 19, 254, 0.5); margin-top: 10px; }
+        .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 15px var(--accent); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
         .card {
-            background: var(--glass);
-            backdrop-filter: blur(30px) saturate(180%);
-            border: 1px solid var(--glass-border);
-            border-radius: 32px;
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-            transition: transform 0.3s ease;
+            background: var(--glass); backdrop-filter: blur(25px) saturate(160%);
+            border: 1px solid var(--glass-border); border-radius: 32px;
+            padding: 25px; margin-bottom: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
         }
 
-        h2 {
-            font-size: 11px;
-            font-weight: 900;
-            color: var(--accent);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin: 0 0 20px 0;
-            opacity: 0.8;
-        }
+        h2 { font-size: 10px; font-weight: 900; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; }
 
-        .row {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 15px;
-        }
-
+        .row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 14px; }
         .row:last-child { border-bottom: none; }
         .name { color: rgba(255, 255, 255, 0.5); }
-        .val { font-variant-numeric: tabular-nums; font-weight: 400; }
+        .val { font-variant-numeric: tabular-nums; font-weight: 600; }
         .val.ok { color: var(--green); }
-        .val.bad { color: var(--red); text-shadow: 0 0 10px rgba(255, 0, 60, 0.5); font-weight: 900; }
+        .val.bad { color: var(--red); }
 
-        .chart-box {
-            height: 120px;
-            margin-top: 20px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(255,255,255,0.05);
-        }
+        .chart-wrapper { height: 200px; position: relative; margin-top: 10px; }
+        .time-labels { display: flex; justify-content: space-between; margin-top: 12px; font-size: 9px; color: #444; font-weight: 800; text-transform: uppercase; }
 
-        .footer {
-            text-align: center;
-            margin-top: 60px;
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.1);
-            font-weight: 600;
-        }
-
-        .author { color: var(--accent); text-decoration: none; font-size: 13px; font-weight: 800; }
+        .footer { text-align: center; margin-top: 40px; font-size: 10px; color: rgba(255,255,255,0.1); }
+        .author { color: var(--accent); text-decoration: none; font-weight: 700; }
     </style>
 </head>
 <body>
     <div class="dashboard">
         <header>
             <h1>🛰️ ОРБИТА ХУЙНЯ</h1>
-            <div class="status-bar">
-                <div class="dot" id="status_dot"></div>
-                ОБНОВЛЕНО <span id="time">...</span>
-            </div>
+            <div class="status-bar"><div class="dot" id="status_dot"></div> ОБНОВЛЕНО <span id="time" style="color:#fff">...</span></div>
         </header>
 
-        <div id="offline_msg">Хост сайта временно отдыхает (пк выключен)</div>
-
-        <main class="grid-container" id="data_cards">
+        <main>
             <div class="card">
-                <h2>ТОП 5 СЕРВЕРОВ VALVE ПО ПИНГУ</h2>
+                <h2>СЕРВЕРА VALVE</h2>
                 <div id="valve_list"></div>
-                <div class="chart-box">
-                    <canvas id="valveChart"></canvas>
-                </div>
             </div>
 
             <div class="card">
                 <h2>СЕРВЕРА ROCKSTAR</h2>
                 <div id="gta_list"></div>
-                <div class="chart-box">
-                    <canvas id="rockstarChart"></canvas>
+            </div>
+
+            <div class="card">
+                <h2>МОНИТОРИНГ СТАБИЛЬНОСТИ</h2>
+                <div class="chart-wrapper">
+                    <canvas id="mainChart"></canvas>
+                </div>
+                <div class="time-labels">
+                    <span id="start_t">начало</span>
+                    <span id="end_t">сейчас</span>
                 </div>
             </div>
         </main>
 
         <footer class="footer">
-            DATABASE: FIREBASE | HOSTING: GITHUB<br>
-            <a href="https://t.me/maybedontab" target="_blank" class="author">by @maybedontab</a>
+            by <a href="https://t.me/maybedontab" target="_blank" class="author">@maybedontab</a>
         </footer>
     </div>
 
     <script>
         const DB_URL = "https://orbita-monitor-default-rtdb.firebaseio.com/data.json";
+        const ctx = document.getElementById('mainChart').getContext('2d');
         
-        const getChartConfig = (color) => ({
+        // Жидкие градиенты
+        const gradV = ctx.createLinearGradient(0, 0, 0, 200);
+        gradV.addColorStop(0, 'rgba(188, 19, 254, 0.25)');
+        gradV.addColorStop(1, 'rgba(188, 19, 254, 0)');
+
+        const gradRS = ctx.createLinearGradient(0, 0, 0, 200);
+        gradRS.addColorStop(0, 'rgba(0, 242, 255, 0.2)');
+        gradRS.addColorStop(1, 'rgba(0, 242, 255, 0)');
+
+        const mainChart = new Chart(ctx, {
             type: 'line',
-            data: { labels: [], datasets: [{ 
-                data: [], borderColor: color, borderWidth: 2, pointRadius: 0, tension: 0.4, fill: true,
-                backgroundColor: (ctx) => {
-                    const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 120);
-                    g.addColorStop(0, `${color}22`); g.addColorStop(1, `${color}00`); return g;
+            data: {
+                labels: [],
+                datasets: [
+                    { 
+                        label: 'Valve', data: [], borderColor: '#bc13fe', borderWidth: 3, 
+                        fill: true, backgroundColor: gradV, pointRadius: 0, tension: 0.4,
+                        segment: { borderColor: ctx => ctx.p1.parsed.y === 0 ? '#ff003c' : undefined }
+                    },
+                    { 
+                        label: 'Rockstar', data: [], borderColor: '#00f2ff', borderWidth: 3, 
+                        fill: true, backgroundColor: gradRS, pointRadius: 0, tension: 0.4,
+                        segment: { borderColor: ctx => ctx.p1.parsed.y === 0 ? '#ff003c' : undefined }
+                    }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { 
+                    legend: { 
+                        display: true, 
+                        labels: { 
+                            color: '#555', usePointStyle: true, pointStyle: 'line', 
+                            boxWidth: 20, font: { size: 10, weight: 'bold' } 
+                        } 
+                    }
                 },
-            }] },
-            options: { 
-                responsive: true, maintainAspectRatio: false, 
-                plugins: { legend: { display: false } },
-                scales: { 
-                    x: { display: false }, 
+                scales: {
+                    x: { display: false },
                     y: { 
-                        beginAtZero: false, 
-                        grid: { display: false },
-                        ticks: { color: 'rgba(255,255,255,0.2)', font: { size: 9 } } 
-                    } 
+                        beginAtZero: true, 
+                        grid: { color: 'rgba(255,255,255,0.03)' }, 
+                        ticks: { color: 'rgba(255,255,255,0.1)', font: { size: 9 } } 
+                    }
                 }
             }
         });
 
-        const vChart = new Chart(document.getElementById('valveChart').getContext('2d'), getChartConfig('#bc13fe'));
-        const rChart = new Chart(document.getElementById('rockstarChart').getContext('2d'), getChartConfig('#00ff88'));
-
-        async function updateData() {
+        async function update() {
             try {
-                const response = await fetch(DB_URL);
-                const data = await response.json();
+                const res = await fetch(DB_URL);
+                const data = await res.json();
                 if (!data) return;
 
-                const isOffline = (Date.now() / 1000 - (data.timestamp || 0)) > 60;
-
-                if (isOffline) {
-                    document.getElementById('offline_msg').style.display = 'block';
-                    document.getElementById('data_cards').style.opacity = '0.2';
-                    document.getElementById('status_dot').style.background = '#ff003c';
-                } else {
-                    document.getElementById('offline_msg').style.display = 'none';
-                    document.getElementById('data_cards').style.opacity = '1';
-                    document.getElementById('status_dot').style.background = '#bc13fe';
-
-                    const pushData = (chart, val, time) => {
-                        if (!val || val === "СДОХ") return;
-                        if (chart.data.labels.at(-1) !== time) {
-                            chart.data.labels.push(time); chart.data.datasets[0].data.push(val);
-                            if (chart.data.labels.length > 30) { chart.data.labels.shift(); chart.data.datasets[0].data.shift(); }
-                            chart.update('none');
-                        }
-                    };
-                    if (data.valve?.[0]) pushData(vChart, data.valve[0].ping, data.last_update);
-                    if (data.rs_graph) pushData(rChart, data.rs_graph, data.last_update);
-                }
-
+                const isOff = (Date.now() / 1000 - (data.timestamp || 0)) > 60;
+                document.getElementById('status_dot').style.background = isOff ? '#ff003c' : '#bc13fe';
                 document.getElementById('time').innerText = data.last_update;
+
+                if (data.v_h && data.rs_h && data.t_h) {
+                    mainChart.data.labels = data.t_h;
+                    mainChart.data.datasets[0].data = data.v_h;
+                    mainChart.data.datasets[1].data = data.rs_h;
+                    mainChart.update('none');
+                    document.getElementById('start_t').innerText = data.t_h[0];
+                    document.getElementById('end_t').innerText = data.t_h.at(-1);
+                }
 
                 const render = (list, targetId) => {
                     let html = '';
-                    if (!list) return;
                     list.forEach(s => {
-                        const isDead = s.ping === 'СДОХ' || s.ping === 'n/a';
-                        html += `<div class="row"><span class="name">${s.name}</span><span class="val ${isDead ? 'bad' : 'ok'}">${isDead ? 'СДОХ' : s.ping + 'мс'}</span></div>`;
+                        const dead = s.ping === 'СДОХ' || s.ping === 0;
+                        html += `<div class="row"><span class="name">${s.name}</span><span class="val ${dead ? 'bad' : 'ok'}">${dead ? 'СДОХ' : s.ping + 'мс'}</span></div>`;
                     });
                     document.getElementById(targetId).innerHTML = html;
                 };
+
                 render(data.valve, 'valve_list'); render(data.gta, 'gta_list');
             } catch (e) {}
         }
-
-        setInterval(updateData, 10000); updateData();
+        setInterval(update, 10000); update();
     </script>
 </body>
 </html>
