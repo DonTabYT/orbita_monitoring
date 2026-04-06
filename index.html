@@ -28,18 +28,11 @@
             min-height: 100vh;
             margin: 0;
             padding: 40px 20px;
-            overflow-x: hidden;
         }
 
-        .dashboard {
-            width: 100%;
-            max-width: 480px;
-        }
+        .dashboard { width: 100%; max-width: 480px; }
 
-        header {
-            margin-bottom: 50px;
-            text-align: center;
-        }
+        header { margin-bottom: 50px; text-align: center; }
 
         h1 {
             font-family: 'Unbounded', cursive;
@@ -47,9 +40,6 @@
             font-weight: 900;
             margin: 0;
             letter-spacing: -1px;
-            display: inline-flex;
-            align-items: center;
-            gap: 15px;
             text-transform: uppercase;
             background: linear-gradient(180deg, #fff 0%, #bc13fe 100%);
             -webkit-background-clip: text;
@@ -64,31 +54,37 @@
             gap: 10px;
             font-size: 10px;
             font-weight: 800;
-            color: rgba(188, 19, 254, 0.5); /* Текст "ОБНОВЛЕНО" остается тусклым */
+            color: rgba(188, 19, 254, 0.5);
             margin-top: 15px;
             text-transform: uppercase;
-            letter-spacing: 2px;
         }
 
-        /* ВРЕМЯ ТЕПЕРЬ БЕЛОЕ */
-        #time {
-            color: #fff;
-            opacity: 1;
-        }
+        #time { color: #fff; }
 
         .dot {
-            width: 6px;
-            height: 6px;
+            width: 6px; height: 6px;
             background: var(--accent);
             border-radius: 50%;
             box-shadow: 0 0 15px var(--accent);
             animation: pulse 2s infinite;
         }
 
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.3; }
-            100% { opacity: 1; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+        /* БЛОК ПРИ ВЫКЛЮЧЕННОМ ПК */
+        #offline_msg {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 0, 60, 0.05);
+            border: 1px solid var(--red);
+            border-radius: 32px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            color: var(--red);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            backdrop-filter: blur(10px);
         }
 
         .card {
@@ -104,14 +100,6 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
-        .card::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; height: 50%;
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
-            pointer-events: none;
-        }
-
         h2 {
             font-size: 11px;
             font-weight: 900;
@@ -119,7 +107,6 @@
             text-transform: uppercase;
             letter-spacing: 2px;
             margin-bottom: 20px;
-            opacity: 0.8;
         }
 
         .row {
@@ -128,16 +115,11 @@
             padding: 14px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             font-size: 15px;
-            position: relative;
-            z-index: 2;
         }
 
         .row:last-child { border-bottom: none; }
-
-        .name { color: rgba(255, 255, 255, 0.5); font-weight: 400; }
-
+        .name { color: rgba(255, 255, 255, 0.5); }
         .val { font-variant-numeric: tabular-nums; font-weight: 600; }
-
         .val.ok { color: var(--green); text-shadow: 0 0 10px rgba(0, 255, 136, 0.2); }
         .val.bad { color: var(--red); text-shadow: 0 0 10px rgba(255, 0, 60, 0.3); }
 
@@ -147,19 +129,9 @@
             font-size: 10px;
             color: rgba(255, 255, 255, 0.1);
             font-weight: 600;
-            letter-spacing: 1px;
         }
 
-        .author {
-            color: var(--accent);
-            text-decoration: none;
-            transition: 0.3s;
-            display: inline-block;
-            margin-top: 8px;
-            font-size: 12px;
-        }
-
-        .author:hover { text-shadow: 0 0 10px var(--accent); transform: scale(1.05); }
+        .author { color: var(--accent); text-decoration: none; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -167,20 +139,24 @@
         <header>
             <h1>🛰️ ОРБИТА ХУЙНЯ</h1>
             <div class="status-bar">
-                <div class="dot"></div>
+                <div class="dot" id="status_dot"></div>
                 ОБНОВЛЕНО <span id="time">...</span>
             </div>
         </header>
 
-        <main>
-            <div class="card">
-                <h2>ТОП 5 СЕРВЕРОВ VALVE ПО ПИНГУ</h2>
-                <div id="valve_list"></div>
-            </div>
+        <main id="main_content">
+            <div id="offline_msg">Хост сайта временно отдыхает<br>(пк выключен)</div>
 
-            <div class="card">
-                <h2>СЕРВЕРА ROCKSTAR</h2>
-                <div id="gta_list"></div>
+            <div id="data_cards">
+                <div class="card">
+                    <h2>ТОП 5 СЕРВЕРОВ VALVE ПО ПИНГУ</h2>
+                    <div id="valve_list"></div>
+                </div>
+
+                <div class="card">
+                    <h2>СЕРВЕРА ROCKSTAR</h2>
+                    <div id="gta_list"></div>
+                </div>
             </div>
         </main>
 
@@ -198,6 +174,22 @@
                 const response = await fetch(DB_URL);
                 const data = await response.json();
                 if (!data) return;
+
+                const now = Date.now() / 1000;
+                const lastTimestamp = data.timestamp || 0;
+                const isOffline = (now - lastTimestamp) > 60; // Если больше минуты нет вестей
+
+                if (isOffline) {
+                    document.getElementById('offline_msg').style.display = 'block';
+                    document.getElementById('data_cards').style.opacity = '0.3';
+                    document.getElementById('status_dot').style.background = '#ff003c';
+                    document.getElementById('status_dot').style.boxShadow = '0 0 15px #ff003c';
+                } else {
+                    document.getElementById('offline_msg').style.display = 'none';
+                    document.getElementById('data_cards').style.opacity = '1';
+                    document.getElementById('status_dot').style.background = '#bc13fe';
+                    document.getElementById('status_dot').style.boxShadow = '0 0 15px #bc13fe';
+                }
 
                 document.getElementById('time').innerText = data.last_update;
 
