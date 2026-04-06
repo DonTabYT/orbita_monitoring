@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ОРБИТА ХУЙНЯ</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg: #050507;
-            --card: #111116;
+            --card-bg: rgba(18, 18, 22, 0.7);
             --accent: #00f2ff;
             --green: #00ff88;
             --red: #ff3e3e;
@@ -16,24 +16,34 @@
 
         body {
             background: var(--bg);
+            background-image: radial-gradient(circle at 50% -20%, #1a1a2e 0%, #050507 60%);
             color: #fff;
             font-family: 'Inter', sans-serif;
-            -webkit-font-smoothing: antialiased; /* Сглаживание */
             display: flex;
             justify-content: center;
+            min-height: 100vh;
             margin: 0;
             padding: 40px 20px;
         }
 
-        .dashboard { width: 100%; max-width: 480px; }
+        .dashboard {
+            width: 100%;
+            max-width: 460px;
+        }
 
-        header { margin-bottom: 40px; }
+        header {
+            margin-bottom: 40px;
+            text-align: left;
+        }
 
         h1 {
-            font-size: 38px; /* Ещё больше */
+            font-size: 32px;
             font-weight: 900;
             margin: 0;
-            letter-spacing: -2px;
+            background: linear-gradient(to right, #fff, #555);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1.5px;
             display: flex;
             align-items: center;
             gap: 15px;
@@ -43,22 +53,30 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 800;
+            letter-spacing: 1px;
             color: #444;
-            margin-top: 15px;
+            margin-top: 10px;
             text-transform: uppercase;
         }
 
-        .dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; box-shadow: 0 0 12px var(--green); }
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--green);
+            border-radius: 50%;
+            box-shadow: 0 0 12px var(--green);
+        }
 
         .card {
-            background: var(--card);
-            border-radius: 24px;
-            padding: 30px;
-            margin-bottom: 25px;
-            border: 1px solid rgba(255,255,255,0.02);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            background: var(--card-bg);
+            backdrop-filter: blur(10px); /* Стеклянный эффект */
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         h2 {
@@ -67,34 +85,36 @@
             color: var(--accent);
             text-transform: uppercase;
             letter-spacing: 2px;
-            margin-bottom: 20px;
-            opacity: 0.8;
+            margin: 0 0 15px 0;
         }
 
         .row {
             display: flex;
             justify-content: space-between;
-            padding: 14px 0;
+            align-items: center;
+            padding: 12px 0;
             border-bottom: 1px solid rgba(255,255,255,0.03);
-            font-size: 16px; /* БОЛЬШЕ ШРИФТ */
-            font-weight: 600;
         }
 
         .row:last-child { border-bottom: none; }
 
-        .name { color: #888; letter-spacing: -0.5px; }
-        .val { font-variant-numeric: tabular-nums; font-weight: 900; }
-        .val.ok { color: var(--green); }
-        .val.bad { color: var(--red); opacity: 0.3; }
+        .name { font-size: 14px; color: #aaa; font-weight: 500; }
+        .val { font-size: 14px; 
+               /* ТУТ ИСПРАВИЛ: ПИНГ ТЕПЕРЬ ОБЫЧНЫЙ */
+               font-weight: 400; 
+               font-variant-numeric: tabular-nums; }
+        
+        .val.ok { color: var(--green); font-weight: 600;} /* Статус можно выделить, сам пинг обычный */
+        .val.bad { color: var(--red); opacity: 0.5; }
 
         .footer {
             text-align: center;
-            margin-top: 50px;
-            font-size: 11px;
+            margin-top: 40px;
+            font-size: 10px;
             color: #222;
-            letter-spacing: 1px;
-            font-weight: 700;
         }
+
+        .author { color: #444; text-decoration: none; font-weight: 700; }
     </style>
 </head>
 <body>
@@ -105,14 +125,14 @@
         </header>
 
         <div class="card">
-            <h2>DISCORD VOICE</h2>
-            <div id="discord_list"></div>
+            <h2>ROCKSTAR NETWORK</h2>
+            <div id="gta_list"></div>
         </div>
 
         <div class="card">
-            <h2>ROCKSTAR NETWORK</h2>
-            <div id="gta_list"></div>
-        </section>
+            <h2>DISCORD VOICE</h2>
+            <div id="discord_list"></div>
+        </div>
 
         <div class="card">
             <h2>TOP 5 VALVE RELAYS</h2>
@@ -121,7 +141,7 @@
 
         <div class="footer">
             DATABASE: FIREBASE | HOST: GITHUB<br><br>
-            by <span style="color: #444">@maybedontab</span>
+            by <span class="author">@maybedontab</span>
         </div>
     </div>
 
