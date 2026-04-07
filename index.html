@@ -15,7 +15,7 @@
         .dashboard { width: 100%; max-width: 500px; }
         header { margin-bottom: 40px; text-align: center; }
         h1 { font-family: 'Unbounded', cursive; font-size: 28px; background: linear-gradient(180deg, #fff 0%, #bc13fe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 15px rgba(188, 19, 254, 0.8)); text-shadow: 0 0 5px rgba(255, 255, 255, 0.2); }
-        .status-bar { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 10px; font-size: 10px; color: rgba(188, 19, 254, 0.5); font-weight: 800; text-transform: uppercase; min-height: 45px; text-align: center; line-height: 1.4; }
+        .status-bar { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 10px; font-size: 10px; color: rgba(188, 19, 254, 0.5); font-weight: 800; text-transform: uppercase; min-height: 55px; text-align: center; line-height: 1.4; }
         #time { color: #fff; font-weight: 900; font-size: 11px; letter-spacing: 1px; }
         .refresh-rate { color: #fff; font-size: 9px; font-weight: 900; text-shadow: 0 0 8px rgba(255,255,255,0.5); background: rgba(255,255,255,0.1); padding: 3px 7px; border-radius: 5px; }
         .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 15px var(--accent); animation: pulse 2s infinite; flex-shrink: 0; }
@@ -38,6 +38,8 @@
         .not-actual { font-size: 8px; opacity: 0.7; text-transform: uppercase; display: block; margin-top: 4px; color: #ff003c; font-weight: 900; letter-spacing: 0.5px; }
         /* СТИЛЬ РЕАЛЬНОГО ВРЕМЕНИ */
         .real-time { font-size: 9px; opacity: 0.5; font-weight: 600; margin-top: 2px; }
+        /* СТИЛЬ ИДЕЙ */
+        .ideas-text { color: rgba(255,255,255,0.2); font-size: 10px; }
     </style>
 </head>
 <body>
@@ -62,8 +64,8 @@
             </div>
         </main>
         <footer class="footer">
-            by <a href="https://t.me/maybedontab" target="_blank" class="author">@maybedontab</a><br>
-            (Есть идеи, пишите. Девочки пишите без идей :))
+            <span class="muted-text">by</span> <a href="https://t.me/maybedontab" target="_blank" class="author">@maybedontab</a><br>
+            <span class="ideas-text">(Есть идеи, пишите. Девочки пишите без идей :))</span>
         </footer>
     </div>
 
@@ -82,13 +84,17 @@
                 { label: 'Valve (Живые)', data: [], borderColor: '#bc13fe', borderWidth: 2, fill: true, backgroundColor: 'rgba(188, 19, 254, 0.1)', tension: 0.4, hitRadius: 25, pointRadius: (c) => c.dataIndex === c.dataset.data.length - 1 ? 0 : 2.5, pointBackgroundColor: '#bc13fe', pointBorderColor: '#bc13fe' },
                 { label: 'Rockstar', data: [], borderColor: '#00f2ff', borderWidth: 2, fill: true, backgroundColor: 'rgba(0, 242, 255, 0.1)', tension: 0.4, hitRadius: 25, pointRadius: (c) => c.dataIndex === c.dataset.data.length - 1 ? 0 : 2.5, pointBackgroundColor: '#00f2ff', pointBorderColor: '#00f2ff' },
                 // ДАТАСЕТ РЕДЛАЙН (СДОХ) -> ТОЛЬКО ИЗОЛИРОВАННЫЕ ТОЧКИ
-                { label: 'СДОХ', data: [], borderColor: '#ff003c', borderWidth: 2, showLine: false, hitRadius: 40, 
+                { label: 'СДОХ', data: [], borderColor: '#ff003c', borderWidth: 2, showLine: false, 
+                  // ИСПРАВИЛ ЛОГИКУ ПОЯВЛЕНИЯ ТОЧКИ (Стеклянная только на Null, точки изолированные.)
                   pointRadius: (c) => (c.dataset.data[c.dataIndex] !== null && global_dead_names[c.dataIndex]?.length > 0) ? 2.5 : 0, 
-                  pointBackgroundColor: '#ff003c', pointBorderColor: '#ff003c' }
+                  pointBackgroundColor: '#ff003c', pointBorderColor: '#ff003c',
+                  // ИСПРАВИЛ НАВЕДЕНИЕ (интерактивить только с живыми точками)
+                  pointHitRadius: (c) => (c.dataset.data[c.dataIndex] !== null && global_dead_names[c.dataIndex]?.length > 0) ? 40 : 0,
+                  pointHoverRadius: (c) => (c.dataset.data[c.dataIndex] !== null && global_dead_names[c.dataIndex]?.length > 0) ? 5 : 0
+                }
             ]},
             options: {
-                responsive: true, maintainAspectRatio: false,
-                interaction: { mode: 'nearest', axis: 'xy', intersect: true },
+                responsive: true, maintainAspectRatio: false, interaction: { mode: 'nearest', axis: 'xy', intersect: true },
                 plugins: {
                     legend: { display: true, labels: { color: '#555', usePointStyle: true, pointStyle: 'line',
                         // УБИРАЕМ РЕЗЕРВНЫЕ МЕТКИ
@@ -127,6 +133,7 @@
 
         async function update() {
             try {
+                // КЕШ-БАСТЕР + ЗАПРЕТ КЕША
                 const cacheBuster = "v=" + Math.random().toString(36).substring(7);
                 const res = await fetch(DB_URL + "?" + cacheBuster, { cache: "no-store", headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } });
                 const data = await res.json();
@@ -164,7 +171,8 @@
                     let html = '';
                     list.forEach(s => {
                         const check = getSaved(s.name);
-                        html += `<div class="row"><input type="checkbox" class="check-box" ${check ? 'checked' : ''} onchange="localStorage.setItem('mon_${s.name}', this.checked); update();"><span class="name">${s.name}</span><span class="val ${s.ping === 'СДОХ' ? 'bad' : 'ok'}">${s.ping === 'СДОХ' ? 'СДОХ' : s.ping + 'мс'}</span></div>`;
+                        const isDead = s.ping === 'СДОХ' || s.ping === 0;
+                        html += `<div class="row"><input type="checkbox" class="check-box" ${check ? 'checked' : ''} onchange="localStorage.setItem('mon_${s.name}', this.checked); update();"><span class="name">${s.name}</span><span class="val ${isDead ? 'bad' : 'ok'}">${isDead ? 'СДОХ' : s.ping + 'мс'}</span></div>`;
                     });
                     document.getElementById(targetId).innerHTML = html;
                 };
