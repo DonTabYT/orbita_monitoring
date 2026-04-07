@@ -55,7 +55,7 @@
         </main>
         <footer class="footer">
             by <a href="https://t.me/maybedontab" target="_blank" class="author">@maybedontab</a><br>
-            Есть идеи, пишите. Девочкам можно писать без идей)
+            Есть идеи, пишите. Девочкам разрешаю писать без идей)
         </footer>
     </div>
 
@@ -115,22 +115,22 @@
                     `;
                 }
 
-                if (!data.t_h) return;
+                if (!data.t_h || data.t_h.length === 0) return;
 
                 const render = (list, id) => {
                     let html = '';
                     list.forEach(s => { html += `<div class="row"><span style="color:rgba(255,255,255,0.5);flex-grow:1">${s.name}</span><span class="val ${s.ping === 'СДОХ' ? 'bad' : 'ok'}">${s.ping === 'СДОХ' ? 'СДОХ' : s.ping + 'мс'}</span></div>`; });
                     document.getElementById(id).innerHTML = html;
                 };
-                render(data.valve, 'valve_list'); render(data.gta, 'gta_list');
+                render(data.valve || [], 'valve_list'); render(data.gta || [], 'gta_list');
 
+                // ПРИКЛЕИВАЕМ ЖИВУЮ ЛИНИЮ
                 let labels = [...data.t_h], v_data = [...data.v_h], rs_data = [...data.rs_h], dead_data = [...data.dead_points];
                 global_dead_names = [...data.dead_names_h];
 
-                // ЖИВОЙ ХВОСТ ГРАФИКА
-                if (labels.length > 0 && labels[labels.length - 1] !== data.last_update) {
+                if (labels[labels.length - 1] !== data.last_update) {
                     labels.push(data.last_update); v_data.push(data.live_v || 0); rs_data.push(data.live_rs || 0);
-                    const currentDead = [].concat(data.valve, data.gta).filter(s => s.ping === 'СДОХ').map(s => s.name);
+                    const currentDead = [].concat(data.valve || [], data.gta || []).filter(s => s.ping === 'СДОХ').map(s => s.name);
                     dead_data.push(currentDead.length > 0 ? 0 : null);
                     global_dead_names.push(currentDead);
                 }
@@ -141,9 +141,9 @@
                 mainChart.data.datasets[2].data = dead_data;
                 mainChart.update('none');
 
-                document.getElementById('start_t').innerText = labels[0];
-                document.getElementById('end_t').innerText = labels[labels.length - 1];
-            } catch (e) {}
+                document.getElementById('start_t').innerText = labels[0] || '...';
+                document.getElementById('end_t').innerText = labels[labels.length - 1] || '...';
+            } catch (e) { console.error(e); }
         }
         update(); setInterval(update, 5000);
     </script>
