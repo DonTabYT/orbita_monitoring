@@ -62,16 +62,16 @@
             </div>
         </header>
         <main id="main_ui">
-            <div class="card"><h2>TOP 5 VALVE JIVYE</h2><div id="valve_list"></div></div>
+            <div class="card"><h2>ТОП 5 VALVE СЕРВЕРОВ ПО ПИНГУ</h2><div id="valve_list"></div></div>
             <div class="card"><h2>СЕРВЕРА ROCKSTAR (TCP)</h2><div id="gta_list"></div></div>
-            <div class="card"><h2>МОНИТОРИНГ СТАБИЛЬНОСТИ (1 ЧАС)</h2>
+            <div class="card"><h2>ГРАФИК СТАБИЛЬНОСТИ (1 ЧАС)</h2>
                 <div class="chart-wrapper"><canvas id="mainChart"></canvas></div>
                 <div class="time-labels"><span id="start_t">...</span><span id="end_t">...</span></div>
             </div>
         </main>
         <footer class="footer">
             by <a href="https://t.me/maybedontab" target="_blank" class="author">@maybedontab</a><br>
-            (Есть идеи, пишите. Девочки пишите без идей :))
+            Есть идеи, пишите. Девочки разрещаю писать без идей)
         </footer>
     </div>
 
@@ -107,7 +107,6 @@
             }
         });
 
-        // ЧАСЫ РЕАЛЬНОГО ВРЕМЕНИ (ОБНОВЛЯЮТСЯ КАЖДУЮ СЕКУНДУ)
         setInterval(() => {
             const el = document.getElementById('current_clock');
             if (el) el.innerText = new Date().toTimeString().split(' ')[0];
@@ -146,8 +145,6 @@
                     document.getElementById(id).innerHTML = html;
                 };
                 render(data.valve, 'valve_list'); render(data.gta, 'gta_list');
-
-                // ЖИВАЯ ЛИНИЯ (ПРИКЛЕИВАНИЕ)
                 let labels = [...data.t_h], v_data = [...data.v_h], rs_data = [...data.rs_h], dead_data = [...data.dead_points];
                 global_dead_names = [...data.dead_names_h];
 
