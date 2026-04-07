@@ -15,10 +15,10 @@
         .dashboard { width: 100%; max-width: 500px; }
         header { margin-bottom: 40px; text-align: center; }
         h1 { font-family: 'Unbounded', cursive; font-size: 28px; background: linear-gradient(180deg, #fff 0%, #bc13fe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 15px rgba(188, 19, 254, 0.8)); text-shadow: 0 0 5px rgba(255, 255, 255, 0.2); }
-        .status-bar { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; font-size: 10px; color: rgba(188, 19, 254, 0.5); font-weight: 800; text-transform: uppercase; min-height: 25px; }
+        .status-bar { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; font-size: 10px; color: rgba(188, 19, 254, 0.5); font-weight: 800; text-transform: uppercase; min-height: 35px; text-align: center; line-height: 1.4; }
         #time { color: #fff; font-weight: 900; font-size: 11px; letter-spacing: 1px; }
         .refresh-rate { color: #fff; font-size: 9px; font-weight: 900; text-shadow: 0 0 8px rgba(255,255,255,0.5); background: rgba(255,255,255,0.1); padding: 3px 7px; border-radius: 5px; }
-        .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 15px var(--accent); animation: pulse 2s infinite; }
+        .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 15px var(--accent); animation: pulse 2s infinite; flex-shrink: 0; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         .card { background: var(--glass); backdrop-filter: blur(25px) saturate(160%); border: 1px solid var(--glass-border); border-radius: 32px; padding: 25px; margin-bottom: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); transition: 0.4s; }
         h2 { font-size: 10px; font-weight: 900; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; }
@@ -33,10 +33,9 @@
         .val.bad { color: var(--red); text-shadow: 0 0 10px rgba(255, 0, 60, 0.6); }
         .chart-wrapper { height: 260px; position: relative; margin-top: 10px; }
         .time-labels { display: flex; justify-content: space-between; margin-top: 12px; font-size: 9px; color: #444; font-weight: 800; text-transform: uppercase; }
-        
-        /* ФУТЕР ВЕРНУЛСЯ */
         .footer { text-align: center; margin-top: 40px; font-size: 10px; color: rgba(255,255,255,0.2); letter-spacing: 1px; }
         .author { color: var(--accent); text-decoration: none; font-weight: 900; text-shadow: 0 0 10px var(--accent); }
+        .not-actual { font-size: 8px; opacity: 0.5; text-transform: uppercase; display: block; margin-top: 2px; }
     </style>
 </head>
 <body>
@@ -45,15 +44,15 @@
             <h1>🛰️ ОРБИТА ХУЙНЯ</h1>
             <div class="status-bar">
                 <div class="dot" id="status_dot"></div>
-                <span id="status_text">
+                <div id="status_text">
                     <span>ОБНОВЛЕНО</span> <span id="time">...</span>
-                </span>
+                </div>
                 <span class="refresh-rate" id="ref_badge">(5 СЕК)</span>
             </div>
         </header>
         <main id="main_ui">
-            <div class="card"><h2>TOP 5 VALVE SERVERS</h2><div id="valve_list"></div></div>
-            <div class="card"><h2>СЕРВЕРА ROCKSTAR</h2><div id="gta_list"></div></div>
+            <div class="card"><h2>TOP 5 VALVE SERVERS</h2><div id="valve_list">Загрузка...</div></div>
+            <div class="card"><h2>СЕРВЕРА ROCKSTAR</h2><div id="gta_list">Загрузка...</div></div>
             <div class="card"><h2>МОНИТОРИНГ СТАБИЛЬНОСТИ (1 ЧАС)</h2>
                 <div class="chart-wrapper"><canvas id="mainChart"></canvas></div>
                 <div class="time-labels"><span id="start_t">...</span><span id="end_t">...</span></div>
@@ -87,7 +86,7 @@
                         callbacks: {
                             title: (c) => 'ВРЕМЯ: ' + c[0].label,
                             label: (c) => c.datasetIndex === 2 ? 'СТАТУС: ОТВАЛ' : ` ${c.dataset.label}: ${c.raw === 0 ? 'СДОХ' : Math.round(c.raw) + 'мс'}`,
-                            afterBody: (c) => { if (c[0].datasetIndex === 2) { const dead = global_dead_names[c[0].dataIndex]; if (dead && dead.length > 0) return ['', 'В ОТВАЛЕ:', ...dead.map(n => ' • ' + n)]; } return null; }
+                            afterBody: (c) => { if (c[0].datasetIndex === 2) { const dead = global_dead_names[c[0].dataIndex]; if (dead?.length) return ['', 'В ОТВАЛЕ:', ...dead.map(n => ' • ' + n)]; } return null; }
                         },
                         filter: (item) => { const active = item.chart.getActiveElements(); if (active.length > 0) { return active[0].datasetIndex === 2 ? item.datasetIndex === 2 : item.datasetIndex !== 2; } return true; }
                     }
@@ -98,7 +97,8 @@
 
         async function update() {
             try {
-                const res = await fetch(DB_URL);
+                // ИСПРАВЛЕНИЕ ДЛЯ ТЕЛЕФОНА: Добавляем ?t=... для сброса кеша
+                const res = await fetch(DB_URL + "?t=" + Date.now());
                 const data = await res.json();
                 if (!data) return;
 
@@ -108,15 +108,14 @@
                 const badge = document.getElementById('ref_badge');
                 const mainUI = document.getElementById('main_ui');
 
-                // ПРОВЕРКА СОСТОЯНИЯ ХОСТА
                 if (data.status === 'offline') {
                     sDot.style.background = '#ff003c';
-                    sText.innerHTML = '<span style="color:#ff003c">Хост сейчас отдыхает (ПК с которого мониторинг - выключен)</span>';
+                    sText.innerHTML = '<span style="color:#ff003c">Хост сейчас отдыхает (ПК с которого мониторинг - выключен)</span><span class="not-actual">(Пинги снизу не актуальные)</span>';
                     badge.style.display = 'none';
                     mainUI.style.opacity = '0.3';
                 } else if (diff > 15) {
                     sDot.style.background = '#ff003c';
-                    sText.innerHTML = '<span style="color:#ff003c">Орбита сейчас посасывает член, ожидаем</span>';
+                    sText.innerHTML = '<span style="color:#ff003c">Орбита сейчас посасывает член, ожидаем</span><span class="not-actual">(Пинги снизу не актуальные)</span>';
                     badge.style.display = 'none';
                     mainUI.style.opacity = '0.3';
                 } else {
