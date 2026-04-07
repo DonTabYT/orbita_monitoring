@@ -15,18 +15,14 @@
         .dashboard { width: 100%; max-width: 500px; }
         header { margin-bottom: 40px; text-align: center; }
         h1 { font-family: 'Unbounded', cursive; font-size: 28px; background: linear-gradient(180deg, #fff 0%, #bc13fe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 15px rgba(188, 19, 254, 0.8)); text-shadow: 0 0 5px rgba(255, 255, 255, 0.2); }
-        
         .status-bar { display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 10px; }
         .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 15px var(--accent); animation: pulse 2s infinite; flex-shrink: 0; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        
         .status-info { display: flex; flex-direction: column; gap: 4px; text-align: left; }
         .status-line { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2; display: flex; align-items: center; }
         .status-title { color: var(--accent); }
         .status-val { color: #fff; margin-left: 5px; } 
-
         .refresh-badge { font-family: 'Inter', sans-serif; color: #fff; font-size: 9px; font-weight: 900; background: rgba(255,255,255,0.1); padding: 3px 6px; border-radius: 5px; margin-left: 10px; white-space: nowrap; }
-
         .card { background: var(--glass); backdrop-filter: blur(25px) saturate(160%); border: 1px solid var(--glass-border); border-radius: 32px; padding: 25px; margin-bottom: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); transition: 0.4s; }
         h2 { font-size: 10px; font-weight: 900; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; }
         .row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 14px; }
@@ -34,10 +30,8 @@
         .val { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 50px; text-align: right; }
         .val.ok { color: var(--green); text-shadow: 0 0 10px rgba(0, 255, 136, 0.6); }
         .val.bad { color: var(--red); text-shadow: 0 0 10px rgba(255, 0, 60, 0.6); }
-
         .chart-wrapper { height: 260px; position: relative; margin-top: 10px; }
         .time-labels { display: flex; justify-content: space-between; margin-top: 12px; font-size: 9px; color: #444; font-weight: 800; text-transform: uppercase; }
-        
         .footer { text-align: center; margin-top: 40px; font-size: 10px; color: rgba(255,255,255,0.2); letter-spacing: 1px; line-height: 1.6; }
         .author { color: var(--accent); text-decoration: none; font-weight: 900; text-shadow: 0 0 10px var(--accent); }
     </style>
@@ -48,17 +42,7 @@
             <h1>🛰️ ОРБИТА ХУЙНЯ</h1>
             <div class="status-bar">
                 <div class="dot" id="status_dot"></div>
-                <div class="status-info" id="status_box">
-                    <div id="row_up" class="status-line">
-                        <span class="status-title">ОБНОВЛЕНО</span>
-                        <span id="time" class="status-val">...</span>
-                        <span class="refresh-badge">(🔄 5 СЕК)</span>
-                    </div>
-                    <div id="row_down" class="status-line">
-                        <span class="status-title">СЕЙЧАС</span>
-                        <span id="current_clock" class="status-val">...</span>
-                    </div>
-                </div>
+                <div class="status-info" id="status_box"></div>
             </div>
         </header>
         <main id="main_ui">
@@ -90,8 +74,7 @@
                 { label: 'СДОХ', data: [], borderColor: '#ff003c', borderWidth: 2, showLine: false, 
                   pointRadius: (c) => (c.dataset.data[c.dataIndex] !== null && global_dead_names[c.dataIndex]?.length > 0) ? 2.5 : 0, 
                   pointHitRadius: (c) => (c.dataset.data[c.dataIndex] !== null && global_dead_names[c.dataIndex]?.length > 0) ? 40 : 0,
-                  pointBackgroundColor: '#ff003c', pointBorderColor: '#ff003c' 
-                }
+                  pointBackgroundColor: '#ff003c', pointBorderColor: '#ff003c' }
             ]},
             options: {
                 responsive: true, maintainAspectRatio: false, interaction: { mode: 'nearest', axis: 'xy', intersect: true },
@@ -107,34 +90,29 @@
             }
         });
 
-        setInterval(() => {
-            const el = document.getElementById('current_clock');
-            if (el) el.innerText = new Date().toTimeString().split(' ')[0];
-        }, 1000);
-
         async function update() {
             try {
-                const res = await fetch(DB_URL + "?v=" + Math.random(), { cache: "no-store" });
+                const res = await fetch(DB_URL + "?v=" + Math.random(), { cache: "no-store", headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } });
                 const data = await res.json();
                 if (!data) return;
 
                 if (data.timestamp === lastDataTimestamp) { stallCounter++; } else { lastDataTimestamp = data.timestamp; stallCounter = 0; }
 
                 const sDot = document.getElementById('status_dot');
+                const sBox = document.getElementById('status_box');
                 const ui = document.getElementById('main_ui');
-                const rowUp = document.getElementById('row_up');
-                const rowDown = document.getElementById('row_down');
-                const timeVal = document.getElementById('time');
+                const nowClock = new Date().toTimeString().split(' ')[0];
 
                 if (data.status === 'offline' || stallCounter >= 4) {
                     sDot.style.background = '#ff003c'; ui.style.opacity = '0.3';
-                    const msg = data.status === 'offline' ? 'ХОСТ ОТДЫХАЕТ (ПК ВЫКЛЮЧЕН)' : 'ОРБИТА ПОСАСЫВАЕТ ЧЛЕН';
-                    rowUp.innerHTML = `<span style="color:#ff003c">${msg}</span>`;
-                    rowDown.innerHTML = `<span style="color:#ff003c; font-size: 8px; font-weight: 900; margin-top: 2px;">(ПИНГИ НИЖЕ НЕ АКТУАЛЬНЫ)</span>`;
+                    const msg = data.status === 'offline' ? 'ХОСТ СЕЙЧАС ОТДЫХАЕТ (ПК ВЫКЛЮЧЕН)' : 'ОРБИТА СЕЙЧАС ПОСАСЫВАЕТ ЧЛЕН';
+                    sBox.innerHTML = `<div class="status-line"><span style="color:#ff003c">${msg}</span></div><div class="status-line" style="color:#ff003c; font-size: 8px; font-weight: 900; margin-top: 2px;">(ПИНГИ НИЖЕ НЕ АКТУАЛЬНЫ)</div>`;
                 } else {
                     sDot.style.background = '#bc13fe'; ui.style.opacity = '1';
-                    rowUp.innerHTML = `<span class="status-title">ОБНОВЛЕНО</span><span id="time" class="status-val">${data.last_update}</span><span class="refresh-badge">(🔄 5 СЕК)</span>`;
-                    rowDown.innerHTML = `<span class="status-title">СЕЙЧАС</span><span id="current_clock" class="status-val">${new Date().toTimeString().split(' ')[0]}</span>`;
+                    sBox.innerHTML = `
+                        <div class="status-line"><span class="status-title">ОБНОВЛЕНО</span><span class="status-val">${data.last_update}</span><span class="refresh-badge">(🔄 5 СЕК)</span></div>
+                        <div class="status-line"><span class="status-title">СЕЙЧАС</span><span class="status-val">${nowClock}</span></div>
+                    `;
                 }
 
                 if (!data.t_h) return;
@@ -145,9 +123,11 @@
                     document.getElementById(id).innerHTML = html;
                 };
                 render(data.valve, 'valve_list'); render(data.gta, 'gta_list');
+
                 let labels = [...data.t_h], v_data = [...data.v_h], rs_data = [...data.rs_h], dead_data = [...data.dead_points];
                 global_dead_names = [...data.dead_names_h];
 
+                // ЖИВОЙ ХВОСТ ГРАФИКА
                 if (labels.length > 0 && labels[labels.length - 1] !== data.last_update) {
                     labels.push(data.last_update); v_data.push(data.live_v || 0); rs_data.push(data.live_rs || 0);
                     const currentDead = [].concat(data.valve, data.gta).filter(s => s.ping === 'СДОХ').map(s => s.name);
@@ -155,9 +135,9 @@
                     global_dead_names.push(currentDead);
                 }
 
-                mainChart.data.labels = labels; 
-                mainChart.data.datasets[0].data = v_data; 
-                mainChart.data.datasets[1].data = rs_data; 
+                mainChart.data.labels = labels;
+                mainChart.data.datasets[0].data = v_data;
+                mainChart.data.datasets[1].data = rs_data;
                 mainChart.data.datasets[2].data = dead_data;
                 mainChart.update('none');
 
