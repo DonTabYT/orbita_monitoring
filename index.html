@@ -15,7 +15,7 @@
         .dashboard { width: 100%; max-width: 500px; }
         header { margin-bottom: 40px; text-align: center; }
         h1 { font-family: 'Unbounded', cursive; font-size: 28px; background: linear-gradient(180deg, #fff 0%, #bc13fe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 15px rgba(188, 19, 254, 0.8)); text-shadow: 0 0 5px rgba(255, 255, 255, 0.2); }
-        .status-bar { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 10px; font-size: 10px; color: rgba(188, 19, 254, 0.5); font-weight: 800; text-transform: uppercase; min-height: 45px; text-align: center; line-height: 1.4; }
+        .status-bar { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 10px; font-size: 10px; color: rgba(188, 19, 254, 0.5); font-weight: 800; text-transform: uppercase; min-height: 40px; text-align: center; line-height: 1.4; }
         #time { color: #fff; font-weight: 900; font-size: 11px; letter-spacing: 1px; }
         .refresh-rate { color: #fff; font-size: 9px; font-weight: 900; text-shadow: 0 0 8px rgba(255,255,255,0.5); background: rgba(255,255,255,0.1); padding: 3px 7px; border-radius: 5px; }
         .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 15px var(--accent); animation: pulse 2s infinite; flex-shrink: 0; }
@@ -33,9 +33,9 @@
         .val.bad { color: var(--red); text-shadow: 0 0 10px rgba(255, 0, 60, 0.6); }
         .chart-wrapper { height: 260px; position: relative; margin-top: 10px; }
         .time-labels { display: flex; justify-content: space-between; margin-top: 12px; font-size: 9px; color: #444; font-weight: 800; text-transform: uppercase; }
-        .footer { text-align: center; margin-top: 40px; font-size: 10px; color: rgba(255,255,255,0.2); letter-spacing: 1px; }
+        .footer { text-align: center; margin-top: 40px; font-size: 10px; color: rgba(255,255,255,0.2); letter-spacing: 1px; line-height: 1.5; }
         .author { color: var(--accent); text-decoration: none; font-weight: 900; text-shadow: 0 0 10px var(--accent); }
-        .not-actual { font-size: 8px; opacity: 0.8; text-transform: uppercase; display: block; margin-top: 4px; color: #ff003c; font-weight: 900; }
+        .not-actual { font-size: 8px; opacity: 0.7; text-transform: uppercase; display: block; margin-top: 4px; color: #ff003c; font-weight: 900; }
     </style>
 </head>
 <body>
@@ -44,7 +44,9 @@
             <h1>🛰️ ОРБИТА ХУЙНЯ</h1>
             <div class="status-bar">
                 <div class="dot" id="status_dot"></div>
-                <div id="status_text"><span>ОБНОВЛЕНО</span> <span id="time">ПОДКЛЮЧЕНИЕ...</span></div>
+                <div id="status_text">
+                    <span>ОБНОВЛЕНО</span> <span id="time">...</span>
+                </div>
                 <span class="refresh-rate" id="ref_badge">(5 СЕК)</span>
             </div>
         </header>
@@ -56,17 +58,17 @@
                 <div class="time-labels"><span id="start_t">...</span><span id="end_t">...</span></div>
             </div>
         </main>
-        <footer class="footer">by <a href="https://t.me/maybedontab" target="_blank" class="author">@maybedontab</a></footer>
+        <footer class="footer">
+            by <a href="https://t.me/maybedontab" target="_blank" class="author">@maybedontab</a><br>
+            (Есть идеи, пишите. Девочки пишите без идей :))
+        </footer>
     </div>
 
     <script>
         const DB_URL = "https://orbita-monitor-default-rtdb.firebaseio.com/data.json";
         const ctx = document.getElementById('mainChart').getContext('2d');
         const getSaved = (n) => localStorage.getItem('mon_' + n) !== 'false';
-        
         let global_dead_names = [];
-        let lastDataTimestamp = 0; // Для отслеживания застоя
-        let stallCounter = 0;      // Счетчик секунд без изменений
 
         const mainChart = new Chart(ctx, {
             type: 'line',
@@ -82,7 +84,7 @@
                     tooltip: { enabled: true, usePointStyle: true, callbacks: {
                         title: (c) => 'ВРЕМЯ: ' + c[0].label,
                         label: (c) => c.datasetIndex === 2 ? 'СТАТУС: ОТВАЛ' : ` ${c.dataset.label}: ${c.raw === 0 ? 'СДОХ' : Math.round(c.raw) + 'мс'}`,
-                        afterBody: (c) => { if (c[0].datasetIndex === 2) { const dead = global_dead_names[c[0].dataIndex]; if (dead?.length) return ['', 'В ОТВАЛЕ:', ...dead.map(n => ' • ' + n)]; } return null; }
+                        afterBody: (c) => { if (c[0].datasetIndex === 2) { const dead = global_dead_names[c[0].dataIndex]; if (dead && dead.length > 0) return ['', 'В ОТВАЛЕ:', ...dead.map(n => ' • ' + n)]; } return null; }
                     }, filter: (item) => { const active = item.chart.getActiveElements(); if (active.length > 0) { return active[0].datasetIndex === 2 ? item.datasetIndex === 2 : item.datasetIndex !== 2; } return true; }}
                 },
                 scales: { x: { display: false }, y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'rgba(255,255,255,0.1)', font: { size: 9 } } } }
@@ -91,39 +93,32 @@
 
         async function update() {
             try {
-                const res = await fetch(DB_URL + "?v=" + Math.random(), { cache: "no-store" });
+                // УЛЬТРА-МЕТОД ПРОТИВ КЕША: случайная строка в URL + заголовки
+                const cacheBuster = "v=" + Math.random().toString(36).substring(7);
+                const res = await fetch(DB_URL + "?" + cacheBuster, {
+                    cache: "no-store",
+                    headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+                });
                 const data = await res.json();
                 if (!data) return;
 
-                // ЛОГИКА ОТСЛЕЖИВАНИЯ ОБНОВЛЕНИЙ (БЕЗ УЧЕТА ЧАСОВ ТЕЛЕФОНА)
-                if (data.timestamp === lastDataTimestamp) {
-                    stallCounter++;
-                } else {
-                    lastDataTimestamp = data.timestamp;
-                    stallCounter = 0;
-                }
-
+                const diff = (Date.now() / 1000 - (data.timestamp || 0));
                 const sText = document.getElementById('status_text');
                 const sDot = document.getElementById('status_dot');
                 const badge = document.getElementById('ref_badge');
                 const mainUI = document.getElementById('main_ui');
 
-                // 1. ПРОВЕРКА: ХОСТ ВЫКЛЮЧЕН (ЯВНО)
                 if (data.status === 'offline') {
                     sDot.style.background = '#ff003c';
-                    sText.innerHTML = '<span style="color:#ff003c">Хост сейчас отдыхает (ПК выключен)</span><br><span class="not-actual">(Пинги снизу не актуальные)</span>';
+                    sText.innerHTML = '<span style="color:#ff003c">Хост сейчас отдыхает (ПК выключен)</span><span class="not-actual">(Пинги снизу не актуальные)</span>';
                     badge.style.display = 'none';
                     mainUI.style.opacity = '0.3';
-                } 
-                // 2. ПРОВЕРКА: ДАННЫЕ НЕ ОБНОВЛЯЛИСЬ БОЛЕЕ 20 СЕКУНД (4 захода по 5 сек)
-                else if (stallCounter >= 4) {
+                } else if (diff > 15) {
                     sDot.style.background = '#ff003c';
-                    sText.innerHTML = '<span style="color:#ff003c">Орбита сейчас посасывает член, ожидаем</span><br><span class="not-actual">(Пинги снизу не актуальные)</span>';
+                    sText.innerHTML = '<span style="color:#ff003c">Орбита сейчас посасывает член, ожидаем</span><span class="not-actual">(Пинги снизу не актуальные)</span>';
                     badge.style.display = 'none';
                     mainUI.style.opacity = '0.3';
-                } 
-                // 3. ВСЁ ОТЛИЧНО
-                else {
+                } else {
                     sDot.style.background = '#bc13fe';
                     sText.innerHTML = '<span>ОБНОВЛЕНО</span> <span id="time">' + data.last_update + '</span>';
                     badge.style.display = 'inline-block';
@@ -137,8 +132,7 @@
                     let html = '';
                     list.forEach(s => {
                         const check = getSaved(s.name);
-                        const isDead = s.ping === 'СДОХ' || s.ping === 0;
-                        html += `<div class="row"><input type="checkbox" class="check-box" ${check ? 'checked' : ''} onchange="localStorage.setItem('mon_${s.name}', this.checked); update();"><span class="name">${s.name}</span><span class="val ${isDead ? 'bad' : 'ok'}">${isDead ? 'СДОХ' : s.ping + 'мс'}</span></div>`;
+                        html += `<div class="row"><input type="checkbox" class="check-box" ${check ? 'checked' : ''} onchange="localStorage.setItem('mon_${s.name}', this.checked); update();"><span class="name">${s.name}</span><span class="val ${s.ping === 'СДОХ' ? 'bad' : 'ok'}">${s.ping === 'СДОХ' ? 'СДОХ' : s.ping + 'мс'}</span></div>`;
                     });
                     document.getElementById(targetId).innerHTML = html;
                 };
