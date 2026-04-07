@@ -35,7 +35,7 @@
         .time-labels { display: flex; justify-content: space-between; margin-top: 12px; font-size: 9px; color: #444; font-weight: 800; text-transform: uppercase; }
         .footer { text-align: center; margin-top: 40px; font-size: 10px; color: rgba(255,255,255,0.2); letter-spacing: 1px; }
         .author { color: var(--accent); text-decoration: none; font-weight: 900; text-shadow: 0 0 10px var(--accent); }
-        .not-actual { font-size: 8px; opacity: 0.8; text-transform: uppercase; display: block; margin-top: 4px; color: #ff003c; font-weight: 900; letter-spacing: 0.5px; }
+        .not-actual { font-size: 8px; opacity: 0.8; text-transform: uppercase; display: block; margin-top: 4px; color: #ff003c; font-weight: 900; }
     </style>
 </head>
 <body>
@@ -44,9 +44,7 @@
             <h1>🛰️ ОРБИТА ХУЙНЯ</h1>
             <div class="status-bar">
                 <div class="dot" id="status_dot"></div>
-                <div id="status_text">
-                    <span>ОБНОВЛЕНО</span> <span id="time">ПОДКЛЮЧЕНИЕ...</span>
-                </div>
+                <div id="status_text"><span>ОБНОВЛЕНО</span> <span id="time">ПОДКЛЮЧЕНИЕ...</span></div>
                 <span class="refresh-rate" id="ref_badge">(5 СЕК)</span>
             </div>
         </header>
@@ -65,7 +63,10 @@
         const DB_URL = "https://orbita-monitor-default-rtdb.firebaseio.com/data.json";
         const ctx = document.getElementById('mainChart').getContext('2d');
         const getSaved = (n) => localStorage.getItem('mon_' + n) !== 'false';
+        
         let global_dead_names = [];
+        let lastDataTimestamp = 0; // Для отслеживания застоя
+        let stallCounter = 0;      // Счетчик секунд без изменений
 
         const mainChart = new Chart(ctx, {
             type: 'line',
@@ -90,29 +91,39 @@
 
         async function update() {
             try {
-                // КЕШ-БАСТЕР + ЗАПРЕТ КЕША
                 const res = await fetch(DB_URL + "?v=" + Math.random(), { cache: "no-store" });
                 const data = await res.json();
                 if (!data) return;
 
-                const diff = (Date.now() / 1000 - (data.timestamp || 0));
+                // ЛОГИКА ОТСЛЕЖИВАНИЯ ОБНОВЛЕНИЙ (БЕЗ УЧЕТА ЧАСОВ ТЕЛЕФОНА)
+                if (data.timestamp === lastDataTimestamp) {
+                    stallCounter++;
+                } else {
+                    lastDataTimestamp = data.timestamp;
+                    stallCounter = 0;
+                }
+
                 const sText = document.getElementById('status_text');
                 const sDot = document.getElementById('status_dot');
                 const badge = document.getElementById('ref_badge');
                 const mainUI = document.getElementById('main_ui');
 
-                // УВЕЛИЧИЛ ПОРОГ ДО 60 СЕКУНД (чтобы не пугало разницей во времени)
+                // 1. ПРОВЕРКА: ХОСТ ВЫКЛЮЧЕН (ЯВНО)
                 if (data.status === 'offline') {
                     sDot.style.background = '#ff003c';
-                    sText.innerHTML = '<span style="color:#ff003c">Хост сейчас отдыхает (ПК выключен)</span><span class="not-actual">(Пинги снизу не актуальные)</span>';
+                    sText.innerHTML = '<span style="color:#ff003c">Хост сейчас отдыхает (ПК выключен)</span><br><span class="not-actual">(Пинги снизу не актуальные)</span>';
                     badge.style.display = 'none';
                     mainUI.style.opacity = '0.3';
-                } else if (diff > 60) { 
+                } 
+                // 2. ПРОВЕРКА: ДАННЫЕ НЕ ОБНОВЛЯЛИСЬ БОЛЕЕ 20 СЕКУНД (4 захода по 5 сек)
+                else if (stallCounter >= 4) {
                     sDot.style.background = '#ff003c';
-                    sText.innerHTML = '<span style="color:#ff003c">Орбита сейчас посасывает член, ожидаем</span><span class="not-actual">(Пинги снизу не актуальные)</span>';
+                    sText.innerHTML = '<span style="color:#ff003c">Орбита сейчас посасывает член, ожидаем</span><br><span class="not-actual">(Пинги снизу не актуальные)</span>';
                     badge.style.display = 'none';
                     mainUI.style.opacity = '0.3';
-                } else {
+                } 
+                // 3. ВСЁ ОТЛИЧНО
+                else {
                     sDot.style.background = '#bc13fe';
                     sText.innerHTML = '<span>ОБНОВЛЕНО</span> <span id="time">' + data.last_update + '</span>';
                     badge.style.display = 'inline-block';
