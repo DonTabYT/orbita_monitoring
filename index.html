@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ОРБИТА ХУЙНЯ</title>
+    <title>🛰 ОРБИТА ХУЙНЯ</title>
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@900&family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -51,7 +51,7 @@
             </div>
         </header>
         <main id="main_ui">
-            <div class="card"><h2>TOP 5 VALVE SERVERS</h2><div id="valve_list">Загрузка...</div></div>
+            <div class="card"><h2>ТОП 5 VALVE СЕРВЕРОВ ПО ПИНГУ</h2><div id="valve_list">Загрузка...</div></div>
             <div class="card"><h2>СЕРВЕРА ROCKSTAR</h2><div id="gta_list">Загрузка...</div></div>
             <div class="card"><h2>МОНИТОРИНГ СТАБИЛЬНОСТИ (1 ЧАС)</h2>
                 <div class="chart-wrapper"><canvas id="mainChart"></canvas></div>
@@ -97,7 +97,6 @@
 
         async function update() {
             try {
-                // ИСПРАВЛЕНИЕ ДЛЯ ТЕЛЕФОНА: Добавляем ?t=... для сброса кеша
                 const res = await fetch(DB_URL + "?t=" + Date.now());
                 const data = await res.json();
                 if (!data) return;
