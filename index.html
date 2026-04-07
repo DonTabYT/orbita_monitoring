@@ -138,10 +138,23 @@
                 render(data.valve, 'valve_list'); render(data.gta, 'gta_list');
 
                 let h_labels = data.t_h || [];
-                let h_v = data.v_h || [];
-                let h_rs = data.rs_h || [];
-                let h_dead = data.dead_points || [];
-                let h_dead_names = data.dead_names_h || [];
+let len = h_labels.length || 120;
+let h_v = data.v_h || [];
+let h_rs = data.rs_h || [];
+
+// Функция-спасатель от фокусов Firebase
+const parseFB = (obj) => {
+    if (!obj) return Array(len).fill(null);
+    if (Array.isArray(obj)) return obj; // Если пришел нормальный массив - отдаем
+    
+    // Если Firebase прислал объект, собираем массив обратно по индексам
+    let arr = Array(len).fill(null);
+    Object.keys(obj).forEach(k => arr[k] = obj[k]);
+    return arr;
+};
+
+let h_dead = parseFB(data.dead_points);
+let h_dead_names = parseFB(data.dead_names_h);
 
                 if (h_labels.length > 0) {
                     let f_labels = [...h_labels];
