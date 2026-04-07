@@ -64,7 +64,7 @@
         </main>
         <footer class="footer">
             by <a href="https://t.me/maybedontab" target="_blank" class="author">@maybedontab</a><br>
-            Есть идеи, пишите. Девочкам разрешаю писать без идей)
+            Есть идеи, пишите. Девочкам можно писать без идей)
         </footer>
     </div>
 
@@ -137,7 +137,6 @@
                 };
                 render(data.valve, 'valve_list'); render(data.gta, 'gta_list');
 
-                // ИСПРАВЛЕННАЯ ЛОГИКА ГРАФИКА
                 let h_labels = data.t_h || [];
                 let h_v = data.v_h || [];
                 let h_rs = data.rs_h || [];
@@ -145,14 +144,11 @@
                 let h_dead_names = data.dead_names_h || [];
 
                 if (h_labels.length > 0) {
-                    // Копируем массивы, чтобы не портить оригинал
                     let f_labels = [...h_labels];
                     let f_v = [...h_v];
                     let f_rs = [...h_rs];
                     let f_dead = [...h_dead];
                     let f_dead_names = [...h_dead_names];
-
-                    // Если live-данные новее последней точки истории — клеим их в конец
                     if (f_labels[f_labels.length - 1] !== data.last_update) {
                         f_labels.push(data.last_update);
                         f_v.push(data.live_v || 0);
