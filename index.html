@@ -16,28 +16,24 @@
         header { margin-bottom: 40px; text-align: center; }
         h1 { font-family: 'Unbounded', cursive; font-size: 28px; background: linear-gradient(180deg, #fff 0%, #bc13fe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 15px rgba(188, 19, 254, 0.8)); text-shadow: 0 0 5px rgba(255, 255, 255, 0.2); }
         
-        /* СТИЛЬ ВРЕМЕНИ В ДВЕ СТРОКИ */
-        .status-bar { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 10px; }
-        .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 15px var(--accent); animation: pulse 2s infinite; flex-shrink: 0; }
+        .status-bar { display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 10px; }
+        .dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 15px var(--accent); animation: pulse 2s infinite; flex-shrink: 0; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         
         .status-info { display: flex; flex-direction: column; gap: 4px; text-align: left; }
-        .status-line { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-        /* Заголовок строки: Фиолетовый */
+        .status-line { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1; }
         .status-title { color: var(--accent); }
-        /* Значение строки: Белое */
         .status-val { color: #fff; margin-left: 5px; } 
 
-        /* СТИЛЬ ЗНАЧКА ОБНОВЛЕНИЯ (в первой строке) */
-        .refresh-badge { font-family: 'Inter', sans-serif; color: #fff; font-size: 9px; font-weight: 900; text-shadow: 0 0 8px rgba(255,255,255,0.5); background: rgba(255,255,255,0.1); padding: 3px 6px; border-radius: 5px; vertical-align: middle; margin-left: 10px; white-space: nowrap; }
+        .refresh-badge { font-family: 'Inter', sans-serif; color: #fff; font-size: 9px; font-weight: 900; background: rgba(255,255,255,0.1); padding: 3px 6px; border-radius: 5px; margin-left: 10px; white-space: nowrap; }
 
         .card { background: var(--glass); backdrop-filter: blur(25px) saturate(160%); border: 1px solid var(--glass-border); border-radius: 32px; padding: 25px; margin-bottom: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
         h2 { font-size: 10px; font-weight: 900; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; }
         .row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 14px; }
-        .row:last-child { border-bottom: none; }
         .val { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 50px; text-align: right; }
         .val.ok { color: var(--green); text-shadow: 0 0 10px rgba(0, 255, 136, 0.6); }
         .val.bad { color: var(--red); text-shadow: 0 0 10px rgba(255, 0, 60, 0.6); }
+
         .chart-wrapper { height: 260px; position: relative; margin-top: 10px; }
         .time-labels { display: flex; justify-content: space-between; margin-top: 12px; font-size: 9px; color: #444; font-weight: 800; text-transform: uppercase; }
         
@@ -51,13 +47,12 @@
             <h1>🛰️ ОРБИТА ХУЙНЯ</h1>
             <div class="status-bar">
                 <div class="dot" id="status_dot"></div>
-                <div class="status-info" id="status_box">
-                    </div>
+                <div class="status-info" id="status_box"></div>
             </div>
         </header>
         <main id="main_ui">
-            <div class="card"><h2>TOP 5 VALVE JIVYE</h2><div id="valve_list">Загрузка...</div></div>
-            <div class="card"><h2>СЕРВЕРА ROCKSTAR (TCP)</h2><div id="gta_list">Загрузка...</div></div>
+            <div class="card"><h2>TOP 5 VALVE JIVYE</h2><div id="valve_list"></div></div>
+            <div class="card"><h2>СЕРВЕРА ROCKSTAR (TCP)</h2><div id="gta_list"></div></div>
             <div class="card"><h2>МОНИТОРИНГ СТАБИЛЬНОСТИ (1 ЧАС)</h2>
                 <div class="chart-wrapper"><canvas id="mainChart"></canvas></div>
                 <div class="time-labels"><span id="start_t">...</span><span id="end_t">...</span></div>
@@ -73,7 +68,6 @@
         const DB_URL = "https://orbita-monitor-default-rtdb.firebaseio.com/data.json";
         const ctx = document.getElementById('mainChart').getContext('2d');
         const getSaved = (n) => localStorage.getItem('mon_' + n) !== 'false';
-        
         let global_dead_names = [];
         let lastDataTimestamp = 0, stallCounter = 0;
 
@@ -82,21 +76,17 @@
             data: { labels: [], datasets: [
                 { label: 'Valve (Живые)', data: [], borderColor: '#bc13fe', borderWidth: 2, fill: true, backgroundColor: 'rgba(188, 19, 254, 0.1)', tension: 0.4, hitRadius: 25, pointRadius: (c) => c.dataIndex === c.dataset.data.length - 1 ? 0 : 2.5, pointBackgroundColor: '#bc13fe', pointBorderColor: '#bc13fe' },
                 { label: 'Rockstar', data: [], borderColor: '#00f2ff', borderWidth: 2, fill: true, backgroundColor: 'rgba(0, 242, 255, 0.1)', tension: 0.4, hitRadius: 25, pointRadius: (c) => c.dataIndex === c.dataset.data.length - 1 ? 0 : 2.5, pointBackgroundColor: '#00f2ff', pointBorderColor: '#00f2ff' },
-                // ДАТАСЕТ РЕДЛАЙН (СДОХ) -> ТОЛЬКО ИЗОЛИРОВАННЫЕ ТОЧКИ
-                { label: 'СДОХ', data: [], borderColor: '#ff003c', borderWidth: 2, showLine: false, 
-                  // Стеклянная точка только если Null и есть данные
-                  pointRadius: (c) => (c.dataset.data[c.dataIndex] !== null && global_dead_names[c.dataIndex]?.length > 0) ? 2.5 : 0, 
-                  // ИСПРАВИЛ НАВЕДЕНИЕ: не интерактивить с пустыми Null точками
-                  pointHitRadius: (c) => (c.dataset.data[c.dataIndex] !== null && global_dead_names[c.dataIndex]?.length > 0) ? 40 : 0,
-                  pointBackgroundColor: '#ff003c', pointBorderColor: '#ff003c' }
+                { 
+                    label: 'СДОХ', data: [], borderColor: '#ff003c', borderWidth: 2, showLine: false, 
+                    pointRadius: (c) => (c.dataset.data[c.dataIndex] !== null && global_dead_names[c.dataIndex]?.length > 0) ? 2.5 : 0, 
+                    pointHitRadius: (c) => (c.dataset.data[c.dataIndex] !== null && global_dead_names[c.dataIndex]?.length > 0) ? 40 : 0,
+                    pointBackgroundColor: '#ff003c', pointBorderColor: '#ff003c' 
+                }
             ]},
             options: {
-                responsive: true, maintainAspectRatio: false,
-                interaction: { mode: 'nearest', axis: 'xy', intersect: true },
+                responsive: true, maintainAspectRatio: false, interaction: { mode: 'nearest', axis: 'xy', intersect: true },
                 plugins: {
-                    legend: { display: true, labels: { color: '#555', usePointStyle: true, pointStyle: 'line',
-                        filter: (item) => ['Valve (Живые)', 'Rockstar', 'СДОХ'].includes(item.text)
-                    }},
+                    legend: { display: true, labels: { color: '#555', usePointStyle: true, pointStyle: 'line', filter: (item) => ['Valve (Живые)', 'Rockstar', 'СДОХ'].includes(item.text) }},
                     tooltip: { enabled: true, usePointStyle: true, callbacks: {
                         title: (c) => 'ВРЕМЯ: ' + c[0].label,
                         label: (c) => {
@@ -107,20 +97,22 @@
                             const dead = global_dead_names[c[0].dataIndex];
                             return (dead && dead.length > 0) ? ['', 'В ОТВАЛЕ:', ...dead.map(n => ' • ' + n)] : null;
                         }
-                    }, filter: (item) => { const active = item.chart.getActiveElements(); if (active.length > 0) { return active[0].datasetIndex === 2 ? item.datasetIndex === 2 : item.datasetIndex !== 2; } return true; }}
+                    }, filter: (item) => { 
+                        const active = item.chart.getActiveElements();
+                        if (active.length > 0) { return active[0].datasetIndex === 2 ? item.datasetIndex === 2 : item.datasetIndex !== 2; }
+                        return true;
+                    }}
                 },
                 scales: { 
                     x: { display: false }, 
-                    // ИСПРАВИЛ МАСШТАБ (всегда от нуля)
-                    y: { beginAtZero: true, min: 0, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'rgba(255,255,255,0.1)', font: { size: 9 } } } 
+                    y: { min: 0, suggestedMax: 150, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'rgba(255,255,255,0.1)', font: { size: 9 } } } 
                 }
             }
         });
 
         async function update() {
             try {
-                const cacheBuster = "v=" + Math.random();
-                const res = await fetch(DB_URL + "?" + cacheBuster, { cache: "no-store", headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } });
+                const res = await fetch(DB_URL + "?v=" + Math.random(), { cache: "no-store" });
                 const data = await res.json();
                 if (!data) return;
 
@@ -135,14 +127,14 @@
                     sDot.style.background = '#ff003c'; ui.style.opacity = '0.3';
                     const msg = data.status === 'offline' ? 'ХОСТ ОТДЫХАЕТ (ПК ВЫКЛЮЧЕН)' : 'ОРБИТА ПОСАСЫВАЕТ ЧЛЕН';
                     sBox.innerHTML = `
-                        <div class="status-line"><span class="status-title" style="color:#ff003c">${msg}</span></div>
-                        <div class="status-line"><span class="status-title" style="color:#ff003c;opacity:0.6">СЕЙЧАС</span><span class="status-val">${nowClock}</span></div>
+                        <div class="status-line"><span class="status-title">${msg}</span></div>
+                        <div class="status-line"><span class="status-title">СЕЙЧАС</span><span class="status-val">${nowClock}</span></div>
+                        <div style="font-size:8px;color:#ff003c;font-weight:900;margin-top:2px">(ПИНГИ НЕ АКТУАЛЬНЫ)</div>
                     `;
                 } else {
                     sDot.style.background = '#bc13fe'; ui.style.opacity = '1';
-                    // ПРИКЛЕИЛ ЗНАЧОК (СИМВОЛ + ТЕКСТ) ВО ВТОРУЮ СТРОКУ
                     sBox.innerHTML = `
-                        <div class="status-line"><span class="status-title">ОБНОВЛЕНО</span><span class="status-val">${data.last_update}</span><span class="refresh-badge">&#x21BB; (5 СЕК)</span></div>
+                        <div class="status-line"><span class="status-title">ОБНОВЛЕНО</span><span class="status-val">${data.last_update}</span><span class="refresh-badge">🔄 (5 СЕК)</span></div>
                         <div class="status-line"><span class="status-title">СЕЙЧАС</span><span class="status-val">${nowClock}</span></div>
                     `;
                 }
@@ -156,22 +148,22 @@
                 };
                 render(data.valve, 'valve_list'); render(data.gta, 'gta_list');
 
-                // ИСПРАВИЛ «СДОХШИЕ» ГРАФИКИ -> ПРИКЛЕИВАЕМ ЖИВУЮ ЛИНИЮ ОБЯЗАТЕЛЬНО
+                // ЖИВОЕ ОБНОВЛЕНИЕ ГРАФИКА
                 let labels = [...data.t_h], v_data = [...data.v_h], rs_data = [...data.rs_h], dead_data = [...data.dead_points];
                 global_dead_names = [...data.dead_names_h];
 
                 if (labels.length > 0 && labels[labels.length - 1] !== data.last_update) {
-                    labels.push(data.last_update); v_data.push(data.live_v || 0); rs_data.push(data.live_rs || 0);
-                    const currentDead = [].concat(data.valve || [], data.gta || []).filter(s => s.ping === 'СДОХ').map(s => s.name);
-                    // ЖИВАЯ ЛИНИЯ: Слать Null, если нет отвала, чтобы не рисовались isolated dots
+                    labels.push(data.last_update); 
+                    v_data.push(data.live_v || 0); 
+                    rs_data.push(data.live_rs || 0);
+                    const currentDead = [].concat(data.valve, data.gta).filter(s => s.ping === 'СДОХ').map(s => s.name);
                     dead_data.push(currentDead.length > 0 ? 0 : null);
                     global_dead_names.push(currentDead);
                 }
 
-                mainChart.data.labels = labels;
-                mainChart.data.datasets[0].data = v_data;
-                mainChart.data.datasets[1].data = rs_data;
-                // Redline теперь isolated points, потому что в Python-истории нормальные точки = None (Null)
+                mainChart.data.labels = labels; 
+                mainChart.data.datasets[0].data = v_data; 
+                mainChart.data.datasets[1].data = rs_data; 
                 mainChart.data.datasets[2].data = dead_data;
                 mainChart.update('none');
 
