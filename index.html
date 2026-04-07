@@ -15,31 +15,34 @@
         .dashboard { width: 100%; max-width: 500px; }
         header { margin-bottom: 40px; text-align: center; }
         h1 { font-family: 'Unbounded', cursive; font-size: 28px; background: linear-gradient(180deg, #fff 0%, #bc13fe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 15px rgba(188, 19, 254, 0.8)); text-shadow: 0 0 5px rgba(255, 255, 255, 0.2); }
-        .status-bar { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 10px; font-size: 10px; color: rgba(188, 19, 254, 0.5); font-weight: 800; text-transform: uppercase; min-height: 55px; text-align: center; line-height: 1.4; }
-        #time { color: #fff; font-weight: 900; font-size: 11px; letter-spacing: 1px; }
-        .refresh-rate { color: #fff; font-size: 9px; font-weight: 900; text-shadow: 0 0 8px rgba(255,255,255,0.5); background: rgba(255,255,255,0.1); padding: 3px 7px; border-radius: 5px; }
+        
+        /* СТИЛЬ ВРЕМЕНИ В ДВЕ СТРОКИ */
+        .status-bar { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 10px; }
         .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 15px var(--accent); animation: pulse 2s infinite; flex-shrink: 0; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        
+        .status-info { display: flex; flex-direction: column; gap: 4px; text-align: left; }
+        .status-line { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        /* Заголовок строки: Фиолетовый */
+        .status-title { color: var(--accent); }
+        /* Значение строки: Белое */
+        .status-val { color: #fff; margin-left: 5px; } 
+
+        /* СТИЛЬ ЗНАЧКА ОБНОВЛЕНИЯ (в первой строке) */
+        .refresh-badge { font-family: 'Inter', sans-serif; color: #fff; font-size: 9px; font-weight: 900; text-shadow: 0 0 8px rgba(255,255,255,0.5); background: rgba(255,255,255,0.1); padding: 3px 6px; border-radius: 5px; vertical-align: middle; margin-left: 10px; white-space: nowrap; }
+
         .card { background: var(--glass); backdrop-filter: blur(25px) saturate(160%); border: 1px solid var(--glass-border); border-radius: 32px; padding: 25px; margin-bottom: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
         h2 { font-size: 10px; font-weight: 900; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; }
         .row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 14px; }
         .row:last-child { border-bottom: none; }
-        .check-box { margin-right: 15px; appearance: none; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.2); border-radius: 4px; cursor: pointer; transition: 0.3s; position: relative; }
-        .check-box:checked { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px var(--accent); }
-        .check-box:checked::after { content: '✔'; position: absolute; font-size: 10px; color: #fff; left: 1px; top: -1px; }
-        .name { color: rgba(255, 255, 255, 0.5); flex-grow: 1; }
         .val { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 50px; text-align: right; }
         .val.ok { color: var(--green); text-shadow: 0 0 10px rgba(0, 255, 136, 0.6); }
         .val.bad { color: var(--red); text-shadow: 0 0 10px rgba(255, 0, 60, 0.6); }
         .chart-wrapper { height: 260px; position: relative; margin-top: 10px; }
         .time-labels { display: flex; justify-content: space-between; margin-top: 12px; font-size: 9px; color: #444; font-weight: 800; text-transform: uppercase; }
-        .footer { text-align: center; margin-top: 40px; font-size: 10px; color: rgba(255,255,255,0.2); letter-spacing: 1px; line-height: 1.5; }
+        
+        .footer { text-align: center; margin-top: 40px; font-size: 10px; color: rgba(255,255,255,0.2); letter-spacing: 1px; line-height: 1.6; }
         .author { color: var(--accent); text-decoration: none; font-weight: 900; text-shadow: 0 0 10px var(--accent); }
-        .not-actual { font-size: 8px; opacity: 0.7; text-transform: uppercase; display: block; margin-top: 4px; color: #ff003c; font-weight: 900; letter-spacing: 0.5px; }
-        /* СТИЛЬ РЕАЛЬНОГО ВРЕМЕНИ */
-        .real-time { font-size: 9px; opacity: 0.5; font-weight: 600; margin-top: 2px; }
-        /* СТИЛЬ ИДЕЙ */
-        .ideas-text { color: rgba(255,255,255,0.2); font-size: 10px; }
     </style>
 </head>
 <body>
@@ -48,11 +51,8 @@
             <h1>🛰️ ОРБИТА ХУЙНЯ</h1>
             <div class="status-bar">
                 <div class="dot" id="status_dot"></div>
-                <div id="status_text">
-                    <span>ОБНОВЛЕНО</span> <span id="time">ПОДКЛЮЧЕНИЕ...</span><br>
-                    <span class="real-time">ВРЕМЯ НА ДАННЫЙ МОМЕНТ: <span id="current_clock">...</span></span>
-                </div>
-                <span class="refresh-rate" id="ref_badge">(5 СЕК)</span>
+                <div class="status-info" id="status_box">
+                    </div>
             </div>
         </header>
         <main id="main_ui">
@@ -64,8 +64,8 @@
             </div>
         </main>
         <footer class="footer">
-            <span class="muted-text">by</span> <a href="https://t.me/maybedontab" target="_blank" class="author">@maybedontab</a><br>
-            <span class="ideas-text">(Есть идеи, пишите. Девочки пишите без идей :))</span>
+            by <a href="https://t.me/maybedontab" target="_blank" class="author">@maybedontab</a><br>
+            (Есть идеи, пишите. Девочки пишите без идей :))
         </footer>
     </div>
 
@@ -75,8 +75,7 @@
         const getSaved = (n) => localStorage.getItem('mon_' + n) !== 'false';
         
         let global_dead_names = [];
-        let lastDataTimestamp = 0; // Для отслеживания застоя
-        let stallCounter = 0;      // Счетчик секунд без изменений
+        let lastDataTimestamp = 0, stallCounter = 0;
 
         const mainChart = new Chart(ctx, {
             type: 'line',
@@ -85,106 +84,86 @@
                 { label: 'Rockstar', data: [], borderColor: '#00f2ff', borderWidth: 2, fill: true, backgroundColor: 'rgba(0, 242, 255, 0.1)', tension: 0.4, hitRadius: 25, pointRadius: (c) => c.dataIndex === c.dataset.data.length - 1 ? 0 : 2.5, pointBackgroundColor: '#00f2ff', pointBorderColor: '#00f2ff' },
                 // ДАТАСЕТ РЕДЛАЙН (СДОХ) -> ТОЛЬКО ИЗОЛИРОВАННЫЕ ТОЧКИ
                 { label: 'СДОХ', data: [], borderColor: '#ff003c', borderWidth: 2, showLine: false, 
-                  // ИСПРАВИЛ ЛОГИКУ ПОЯВЛЕНИЯ ТОЧКИ (Стеклянная только на Null, точки изолированные.)
+                  // Стеклянная точка только если Null и есть данные
                   pointRadius: (c) => (c.dataset.data[c.dataIndex] !== null && global_dead_names[c.dataIndex]?.length > 0) ? 2.5 : 0, 
-                  pointBackgroundColor: '#ff003c', pointBorderColor: '#ff003c',
-                  // ИСПРАВИЛ НАВЕДЕНИЕ (интерактивить только с живыми точками)
+                  // ИСПРАВИЛ НАВЕДЕНИЕ: не интерактивить с пустыми Null точками
                   pointHitRadius: (c) => (c.dataset.data[c.dataIndex] !== null && global_dead_names[c.dataIndex]?.length > 0) ? 40 : 0,
-                  pointHoverRadius: (c) => (c.dataset.data[c.dataIndex] !== null && global_dead_names[c.dataIndex]?.length > 0) ? 5 : 0
-                }
+                  pointBackgroundColor: '#ff003c', pointBorderColor: '#ff003c' }
             ]},
             options: {
-                responsive: true, maintainAspectRatio: false, interaction: { mode: 'nearest', axis: 'xy', intersect: true },
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'nearest', axis: 'xy', intersect: true },
                 plugins: {
                     legend: { display: true, labels: { color: '#555', usePointStyle: true, pointStyle: 'line',
-                        // УБИРАЕМ РЕЗЕРВНЫЕ МЕТКИ
-                        filter: (item, data) => ['Valve (Живые)', 'Rockstar', 'СДОХ'].includes(item.text)
+                        filter: (item) => ['Valve (Живые)', 'Rockstar', 'СДОХ'].includes(item.text)
                     }},
                     tooltip: { enabled: true, usePointStyle: true, callbacks: {
                         title: (c) => 'ВРЕМЯ: ' + c[0].label,
                         label: (c) => {
-                            const deadNames = global_dead_names[c.dataIndex];
-                            if (deadNames && deadNames.length > 0) {
-                                return `СТАТУС: В ОТВАЛЕ (${c.dataset.label}: ${c.raw === 0 ? 'СДОХ' : Math.round(c.raw) + 'мс'})`;
-                            }
+                            if (c.datasetIndex === 2) return 'СТАТУС: ОБНАРУЖЕН ОТВАЛ';
                             return `${c.dataset.label}: ${c.raw === 0 ? 'СДОХ' : Math.round(c.raw) + 'мс'}`;
                         },
                         afterBody: (c) => {
-                            const deadNames = global_dead_names[c[0].dataIndex];
-                            if (deadNames && deadNames.length > 0) {
-                                return ['', 'СЕРВЕРА В ОТВАЛЕ:', ...deadNames.map(n => ' • ' + n)];
-                            }
-                            return null;
+                            const dead = global_dead_names[c[0].dataIndex];
+                            return (dead && dead.length > 0) ? ['', 'В ОТВАЛЕ:', ...dead.map(n => ' • ' + n)] : null;
                         }
                     }, filter: (item) => { const active = item.chart.getActiveElements(); if (active.length > 0) { return active[0].datasetIndex === 2 ? item.datasetIndex === 2 : item.datasetIndex !== 2; } return true; }}
                 },
-                scales: { x: { display: false }, y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'rgba(255,255,255,0.1)', font: { size: 9 } } } }
+                scales: { 
+                    x: { display: false }, 
+                    // ИСПРАВИЛ МАСШТАБ (всегда от нуля)
+                    y: { beginAtZero: true, min: 0, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'rgba(255,255,255,0.1)', font: { size: 9 } } } 
+                }
             }
         });
 
-        // Функция Часов Реального Времени
-        function updateClock() {
-            const now = new Date();
-            const time = now.toTimeString().split(' ')[0]; // HH:MM:SS
-            const clockEl = document.getElementById('current_clock');
-            if (clockEl) clockEl.innerText = time;
-        }
-        updateClock(); setInterval(updateClock, 1000); // Секундное обновление
-
         async function update() {
             try {
-                // КЕШ-БАСТЕР + ЗАПРЕТ КЕША
-                const cacheBuster = "v=" + Math.random().toString(36).substring(7);
+                const cacheBuster = "v=" + Math.random();
                 const res = await fetch(DB_URL + "?" + cacheBuster, { cache: "no-store", headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } });
                 const data = await res.json();
                 if (!data) return;
 
-                if (data.timestamp === lastDataTimestamp) { stallCounter++; } 
-                else { lastDataTimestamp = data.timestamp; stallCounter = 0; }
+                if (data.timestamp === lastDataTimestamp) { stallCounter++; } else { lastDataTimestamp = data.timestamp; stallCounter = 0; }
 
-                const sText = document.getElementById('status_text');
                 const sDot = document.getElementById('status_dot');
-                const badge = document.getElementById('ref_badge');
-                const mainUI = document.getElementById('main_ui');
+                const sBox = document.getElementById('status_box');
+                const ui = document.getElementById('main_ui');
+                const nowClock = new Date().toTimeString().split(' ')[0];
 
-                if (data.status === 'offline') {
-                    sDot.style.background = '#ff003c';
-                    sText.innerHTML = '<span style="color:#ff003c">Хост сейчас отдыхает (ПК выключен)</span><span class="not-actual">(Пинги снизу не актуальные)</span><span class="real-time">ВРЕМЯ НА ДАННЫЙ МОМЕНТ: <span id="current_clock">...</span></span>';
-                    badge.style.display = 'none';
-                    mainUI.style.opacity = '0.3';
-                } else if (stallCounter >= 4) {
-                    sDot.style.background = '#ff003c';
-                    sText.innerHTML = '<span style="color:#ff003c">Орбита сейчас посасывает член, ожидаем</span><span class="not-actual">(Пинги снизу не актуальные)</span><span class="real-time">ВРЕМЯ НА ДАННЫЙ МОМЕНТ: <span id="current_clock">...</span></span>';
-                    badge.style.display = 'none';
-                    mainUI.style.opacity = '0.3';
+                if (data.status === 'offline' || stallCounter >= 4) {
+                    sDot.style.background = '#ff003c'; ui.style.opacity = '0.3';
+                    const msg = data.status === 'offline' ? 'ХОСТ ОТДЫХАЕТ (ПК ВЫКЛЮЧЕН)' : 'ОРБИТА ПОСАСЫВАЕТ ЧЛЕН';
+                    sBox.innerHTML = `
+                        <div class="status-line"><span class="status-title" style="color:#ff003c">${msg}</span></div>
+                        <div class="status-line"><span class="status-title" style="color:#ff003c;opacity:0.6">СЕЙЧАС</span><span class="status-val">${nowClock}</span></div>
+                    `;
                 } else {
-                    sDot.style.background = '#bc13fe';
-                    sText.innerHTML = '<span>ОБНОВЛЕНО</span> <span id="time">' + data.last_update + '</span><span class="real-time">ВРЕМЯ НА ДАННЫЙ МОМЕНТ: <span id="current_clock">...</span></span>';
-                    badge.style.display = 'inline-block';
-                    mainUI.style.opacity = '1';
+                    sDot.style.background = '#bc13fe'; ui.style.opacity = '1';
+                    // ПРИКЛЕИЛ ЗНАЧОК (СИМВОЛ + ТЕКСТ) ВО ВТОРУЮ СТРОКУ
+                    sBox.innerHTML = `
+                        <div class="status-line"><span class="status-title">ОБНОВЛЕНО</span><span class="status-val">${data.last_update}</span><span class="refresh-badge">&#x21BB; (5 СЕК)</span></div>
+                        <div class="status-line"><span class="status-title">СЕЙЧАС</span><span class="status-val">${nowClock}</span></div>
+                    `;
                 }
 
                 if (!data.t_h) return;
 
-                const render = (list, targetId) => {
-                    if (!list) return;
+                const render = (list, id) => {
                     let html = '';
-                    list.forEach(s => {
-                        const check = getSaved(s.name);
-                        const isDead = s.ping === 'СДОХ' || s.ping === 0;
-                        html += `<div class="row"><input type="checkbox" class="check-box" ${check ? 'checked' : ''} onchange="localStorage.setItem('mon_${s.name}', this.checked); update();"><span class="name">${s.name}</span><span class="val ${isDead ? 'bad' : 'ok'}">${isDead ? 'СДОХ' : s.ping + 'мс'}</span></div>`;
-                    });
-                    document.getElementById(targetId).innerHTML = html;
+                    list.forEach(s => { html += `<div class="row"><span style="color:rgba(255,255,255,0.5);flex-grow:1">${s.name}</span><span class="val ${s.ping === 'СДОХ' ? 'bad' : 'ok'}">${s.ping === 'СДОХ' ? 'СДОХ' : s.ping + 'мс'}</span></div>`; });
+                    document.getElementById(id).innerHTML = html;
                 };
                 render(data.valve, 'valve_list'); render(data.gta, 'gta_list');
 
+                // ИСПРАВИЛ «СДОХШИЕ» ГРАФИКИ -> ПРИКЛЕИВАЕМ ЖИВУЮ ЛИНИЮ ОБЯЗАТЕЛЬНО
                 let labels = [...data.t_h], v_data = [...data.v_h], rs_data = [...data.rs_h], dead_data = [...data.dead_points];
                 global_dead_names = [...data.dead_names_h];
 
                 if (labels.length > 0 && labels[labels.length - 1] !== data.last_update) {
                     labels.push(data.last_update); v_data.push(data.live_v || 0); rs_data.push(data.live_rs || 0);
                     const currentDead = [].concat(data.valve || [], data.gta || []).filter(s => s.ping === 'СДОХ').map(s => s.name);
-                    // ЖИВАЯ ЛИНИЯ: Слать 0, если есть отвал, или Null, если нет.
+                    // ЖИВАЯ ЛИНИЯ: Слать Null, если нет отвала, чтобы не рисовались isolated dots
                     dead_data.push(currentDead.length > 0 ? 0 : null);
                     global_dead_names.push(currentDead);
                 }
@@ -192,11 +171,12 @@
                 mainChart.data.labels = labels;
                 mainChart.data.datasets[0].data = v_data;
                 mainChart.data.datasets[1].data = rs_data;
-                // Redline теперь сплошная только на Null, точки изолированные.
+                // Redline теперь isolated points, потому что в Python-истории нормальные точки = None (Null)
                 mainChart.data.datasets[2].data = dead_data;
                 mainChart.update('none');
-                document.getElementById('start_t').innerText = labels[0] || '...';
-                document.getElementById('end_t').innerText = labels[labels.length - 1] || '...';
+
+                document.getElementById('start_t').innerText = labels[0];
+                document.getElementById('end_t').innerText = labels[labels.length - 1];
             } catch (e) { console.error(e); }
         }
         update(); setInterval(update, 5000);
